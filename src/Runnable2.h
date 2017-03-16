@@ -3,13 +3,10 @@
 #include <string>
 #include <vector>
 #include <memory>
-
-#include <metasim.hpp>
+#include <stdint.h>
 
 #include "Label2.h"
-#include "weibullvar.h"
 
-using namespace MetaSim;
 using namespace std;
 
 
@@ -33,8 +30,6 @@ public:
     void insertReadLabel(int id);
     void insertWriteLabel(int id);
 
-    void setWeibull();
-
     void setDistribParams(int l, int u, string &prp, int m);
 
     void setTask(Task2 *t);
@@ -44,10 +39,8 @@ public:
 
     void addChain(EventChains2 *C);
 
-    void readLabel(int l, const Tick &activationTime);
+		void readLabel(int l, const int64_t &activationTime);
     void writeLabel(int l);
-
-    Tick getComputationTime();
 
     void increaseID();
     long long int getID() const;
@@ -55,7 +48,7 @@ public:
     vector<int> labelsRead_list;
     vector<int> labelsWrite_list;
 
-    void pushRT(const Tick &rt);
+		void pushRT(const int64_t &rt);
 
     void saveRT();
 
@@ -64,16 +57,14 @@ private:
 
     vector<EventChains2 *>inChain;
 
-    Tick lowerBound;
-    Tick upperBound;
-
-    std::unique_ptr<WeibullVar> wv;
+		int64_t lowerBound;
+		int64_t upperBound;
 
     //distribution params
     string pRemainPromille;
-    Tick mean;
+		int64_t mean;
 
-    std::vector<Tick> _responseTimes;
+		std::vector<int64_t> _responseTimes;
 
     Task2 *task;
     int task_i;

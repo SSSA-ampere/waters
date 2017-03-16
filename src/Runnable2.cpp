@@ -5,6 +5,7 @@
 #include <EventChains2.h>
 
 #include <fstream>
+#include <algorithm>
 
 Runnable2::Runnable2()
 {
@@ -74,34 +75,7 @@ int Runnable2::getPosInTask()
     return task_i;
 }
 
-void Runnable2::setWeibull()
-{
-    wv = std::unique_ptr<MetaSim::WeibullVar>(new MetaSim::WeibullVar(MetaSim::weibullFromAmalthea(lowerBound,
-                                                                                                   upperBound,
-                                                                                                   mean,
-                                                                                                   std::stod(pRemainPromille))));
-}
-
-Tick Runnable2::getComputationTime()
-{
-    long long int lb = wv->get(lowerBound);
-    double sf = getTask()->getScalingFactor();
-    long long int result = lb * sf;
-
-    /*
-    if (getTask()->getName() == "ISR_9" ||
-            getTask()->getName() == "Angle_Sync" ||
-            getTask()->getName() == "Task_100ms" ||
-            getTask()->getName() == "Task_200ms" ||
-            getTask()->getName() == "Task_1000ms" ||
-            getTask()->getName() == "Task_10ms")
-        asm("NOP");
-*/
-    return Tick(result);
-}
-
-
-void Runnable2::readLabel(int l, const Tick &activationTime)
+void Runnable2::readLabel(int l, const int64_t &activationTime)
 {
     for (EventChains2 *C : inChain)
         C->read(this, labelList[l], activationTime);
@@ -129,7 +103,7 @@ void Runnable2::addChain(EventChains2 *C)
         inChain.push_back(C);
 }
 
-void Runnable2::pushRT(const Tick &rt)
+void Runnable2::pushRT(const int64_t &rt)
 {
     _responseTimes.push_back(rt);
 }

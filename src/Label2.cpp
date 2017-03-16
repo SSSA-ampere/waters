@@ -1,7 +1,5 @@
 #include "Label2.h"
 
-#include <simul.hpp>
-
 void Label2::init()
 {
   isconstant = false;

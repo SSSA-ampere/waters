@@ -1,20 +1,4 @@
-/*
-	In this example, a simple system is simulated, consisting of two
-	real-time tasks scheduled by EDF on a single processor.
-*/
-#include <kernel.hpp>
-#include <edfsched.hpp>
-#include <jtrace.hpp>
-#include <texttrace.hpp>
-#include <json_trace.hpp>
-#include <rttask.hpp>
-#include <instr.hpp>
-
 #include "tinyxml/tinyxml2.h"
-
-
-#include "weibullvar.h"
-
 
 #include "strtools.h"
 
@@ -24,8 +8,6 @@
 #include "EventChains2.h"
 #include "EventChains2_elem.h"
 
-#include "builder.h"
-
 #include "shared.h"
 
 #include <vector>
@@ -33,8 +15,6 @@
 
 const unsigned int CPU_NUM = 4;
 
-using namespace MetaSim;
-using namespace RTSim;
 using namespace tinyxml2;
 using namespace std;
 
@@ -94,7 +74,7 @@ int countSiblingElements(XMLElement *pElement, char *elem_name, char *attr, char
 void parse_XMLmodel(void)
 {
   XMLDocument xmlDoc;
-  XMLError eResult = xmlDoc.LoadFile("../../../examples/waters/ChallengeModelModified.amxmi");
+	XMLError eResult = xmlDoc.LoadFile(MODEL_PATH);
 
   XMLCheckResult(eResult);
 
@@ -454,29 +434,6 @@ void parse_XMLmodel(void)
 
 }
 
-
-
-void test_weibull()
-{
-
-  for (double k = 0.5; k <=5; k *= 2) {
-    WeibullVar wv(1, k);
-
-    fstream weibullout;
-    weibullout.open("weibullOut" + to_string(k) + ".dat", ios_base::out);
-    for (unsigned int i=0; i<100000; ++i) {
-      double value = wv.get();
-
-      if (value <= 2.5)
-        weibullout << value << endl;
-    }
-    weibullout.close();
-  }
-}
-
-
-
-
 int main()
 {
   //test_weibull();
@@ -487,10 +444,6 @@ int main()
   parse_XMLmodel();
 
   fflush(stdout);
-
-  for (auto o : runnableList) {
-    o->setWeibull();
-  }
 
   for (Task2 * t : taskList) {
       t->setScalingFactor(1);

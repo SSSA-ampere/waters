@@ -12,8 +12,8 @@ EventChains2_elem::~EventChains2_elem()
 
 }
 
-inline void insertElementsInVector(vector< pair<long long int, Tick> > &dst,
-                            const vector< pair<long long int, Tick> > &src)
+inline void insertElementsInVector(vector< pair<long long int, int64_t> > &dst,
+														const vector< pair<long long int, int64_t> > &src)
 {
     if (dst.size() > 0)
         return;
@@ -28,8 +28,8 @@ inline void insertElementsInVector(vector< pair<long long int, Tick> > &dst,
         */
 }
 
-inline int moveElementsFromVectors(vector< pair<long long int, Tick> > &dst,
-                            vector< pair<long long int, Tick> > &src)
+inline int moveElementsFromVectors(vector< pair<long long int, int64_t> > &dst,
+														vector< pair<long long int, int64_t> > &src)
 {
     if (src.size() == 0)
         return -1;
@@ -46,27 +46,27 @@ inline int moveElementsFromVectors(vector< pair<long long int, Tick> > &dst,
     return 0;
 }
 
-int EventChains2_elem::pushRunnable(const vector< pair<long long int, Tick> > &status)
+int EventChains2_elem::pushRunnable(const vector< pair<long long int, int64_t> > &status)
 {
     insertElementsInVector(_statusStimulusRunnable, status);
 
     return 0;
 }
 
-int EventChains2_elem::pushLastRunnable(const vector< pair<long long int, Tick> > &status)
+int EventChains2_elem::pushLastRunnable(const vector< pair<long long int, int64_t> > &status)
 {
     insertElementsInVector(_statusResponseRunnable, status);
 
     return 0;
 }
 
-int EventChains2_elem::pullLabel(vector< pair<long long int, Tick> > &status)
+int EventChains2_elem::pullLabel(vector< pair<long long int, int64_t> > &status)
 {
     return moveElementsFromVectors(status, _statusLabel);
 }
 
 
-int EventChains2_elem::pushLabel(const vector< pair<long long int, Tick> > &status)
+int EventChains2_elem::pushLabel(const vector< pair<long long int, int64_t> > &status)
 {
     _statusLabel = status;
 
@@ -74,12 +74,12 @@ int EventChains2_elem::pushLabel(const vector< pair<long long int, Tick> > &stat
 }
 
 
-int EventChains2_elem::pullRunnable(vector< pair<long long int, Tick> > &status)
+int EventChains2_elem::pullRunnable(vector< pair<long long int, int64_t> > &status)
 {
     return moveElementsFromVectors(status, _statusStimulusRunnable);
 }
 
-int EventChains2_elem::pullLastRunnable(vector< pair<long long int, Tick> > &status)
+int EventChains2_elem::pullLastRunnable(vector< pair<long long int, int64_t> > &status)
 {
     return moveElementsFromVectors(status, _statusResponseRunnable);
 }

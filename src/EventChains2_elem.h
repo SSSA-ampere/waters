@@ -24,23 +24,23 @@ public:
     //                label_wr
     // runnable_stimulus    runnable_response
 
-    vector< pair<long long int, Tick> > _statusStimulusRunnable;
-    vector< pair<long long int, Tick> > _statusResponseRunnable;
-    vector< pair<long long int, Tick> > _statusLabel;
+    vector< pair<long long int, int64_t> > _statusStimulusRunnable;
+    vector< pair<long long int, int64_t> > _statusResponseRunnable;
+    vector< pair<long long int, int64_t> > _statusLabel;
 
     // the update the stimulus runnable status with the parameter
-    int pushRunnable(const vector< pair<long long int, Tick> > &status);
-    int pushLastRunnable(const vector< pair<long long int, Tick> > &status);
+    int pushRunnable(const vector< pair<long long int, int64_t> > &status);
+    int pushLastRunnable(const vector< pair<long long int, int64_t> > &status);
 
     // return the the label_wr parameter and clear it
-    int pullLabel(vector< pair<long long int, Tick> > &status);
+    int pullLabel(vector< pair<long long int, int64_t> > &status);
 
     // the update the label status with the parameter
-    int pushLabel(const vector< pair<long long int, Tick> > &status);
+    int pushLabel(const vector< pair<long long int, int64_t> > &status);
 
     // return the the stimulus runnable parameter and clear it
-    int pullRunnable(vector< pair<long long int, Tick> > &status);
-    int pullLastRunnable(vector< pair<long long int, Tick> > &status);
+    int pullRunnable(vector< pair<long long int, int64_t> > &status);
+    int pullLastRunnable(vector< pair<long long int, int64_t> > &status);
 
 private:
 

@@ -3,9 +3,6 @@
 #include <string>
 #include <vector>
 
-#include <metasim.hpp>
-
-using namespace MetaSim;
 using namespace std;
 
 class Runnable2;

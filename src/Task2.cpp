@@ -22,24 +22,24 @@ string Task2::getName()
     return name;
 }
 
-void Task2::setPriority(Tick p)
+void Task2::setPriority(int64_t p)
 {
     priority = p;
 }
 
-Tick Task2::getPriority()
+int64_t Task2::getPriority()
 {
     return priority;
 }
 
-void Task2::setPeriod(Tick p)
+void Task2::setPeriod(int64_t p)
 {
     period = p;
     maxInterArrivalTime = -1;
     printf("Task2->setPeriod = %lldus\n", (long long)p);
 }
 
-Tick Task2::getPeriod()
+int64_t Task2::getPeriod()
 {
     return period;
 }
@@ -64,7 +64,7 @@ Task_Preemption Task2::getPreemption()
     return preemption;
 }
 
-void Task2::setInterArrivalTime(Tick min, Tick max)
+void Task2::setInterArrivalTime(int64_t min, int64_t max)
 {
     minInterArrivalTime = min;
     maxInterArrivalTime = max;
@@ -72,12 +72,12 @@ void Task2::setInterArrivalTime(Tick min, Tick max)
     printf("Task2->setInterArrivaltime min=%lldus max=%lldus\n", (long long)min, (long long)max);
 }
 
-Tick Task2::getMinInterArrivalTime()
+int64_t Task2::getMinInterArrivalTime()
 {
     return minInterArrivalTime;
 }
 
-Tick Task2::getMaxInterArrivalTime()
+int64_t Task2::getMaxInterArrivalTime()
 {
     return maxInterArrivalTime;
 }

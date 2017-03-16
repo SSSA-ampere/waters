@@ -1,12 +1,14 @@
 #include "EventChains2.h"
 
+#include <fstream>
+
 using namespace std;
 
 EventChains2::EventChains2()
 {
     _status = {
-        pair<long long int, Tick>(-1, 0),
-        pair<long long int, Tick>(-1, 0)
+				pair<long long int, int64_t>(-1, 0),
+				pair<long long int, int64_t>(-1, 0)
     };
 }
 
@@ -15,7 +17,7 @@ EventChains2::~EventChains2()
 
 }
 
-void EventChains2::read(const Runnable2 *runnable, const Label2 *label, const Tick &activationTime)
+void EventChains2::read(const Runnable2 *runnable, const Label2 *label, const int64_t &activationTime)
 {
     EventChains2_elem *ev;
     EventChains2_elem *ev_prev;
@@ -26,7 +28,7 @@ void EventChains2::read(const Runnable2 *runnable, const Label2 *label, const Ti
         // This is the last in chain, the label that
         // is going to be read is the one in the same element
 
-        vector< pair<long long int, Tick> > status;
+				vector< pair<long long int, int64_t> > status;
 
         // Remove data from the label and
         // write it to the runnable status
@@ -42,8 +44,8 @@ void EventChains2::read(const Runnable2 *runnable, const Label2 *label, const Ti
         // This is the first in chain, no label can be read.
         // Use the activation time instead!
 
-        vector< pair<long long int, Tick> > status = {
-            pair<long long int, Tick>(runnable->getID(), activationTime)
+				vector< pair<long long int, int64_t> > status = {
+						pair<long long int, int64_t>(runnable->getID(), activationTime)
         };
 
         ev->pushRunnable(status);
@@ -61,7 +63,7 @@ void EventChains2::read(const Runnable2 *runnable, const Label2 *label, const Ti
         if (ev_prev->label_wr == label &&
                 ev->runnable_stimulus == runnable) {
 
-            vector< pair<long long int, Tick> > status;
+						vector< pair<long long int, int64_t> > status;
 
             // Remove data from the label and
             // write it to the runnable status
@@ -75,6 +77,7 @@ void EventChains2::read(const Runnable2 *runnable, const Label2 *label, const Ti
 
 void EventChains2::write(const Runnable2 *runnable, const Label2 *label)
 {
+	/*
     EventChains2_elem * ev;
 
     // If the runnable is the last one, then try to compute the FF and LL delays
@@ -84,15 +87,15 @@ void EventChains2::write(const Runnable2 *runnable, const Label2 *label)
 
         long long int currentTime = SIMUL.getTime();
 
-        vector< pair<long long int, Tick> > tmpStatus;
+				vector< pair<long long int, int64_t> > tmpStatus;
 
         if (ev->pullLastRunnable(tmpStatus) == 0) {
             if (_status[0].first != tmpStatus[0].first) {
                 if (_status[0].first != -1) {
-                    Tick FF = currentTime - _status[0].second;
+										int64_t FF = currentTime - _status[0].second;
                     _FF.push_back(FF);
                     if (_status[1].first != -1) {
-                        Tick LL = _status[1].second - _status[0].second;
+												int64_t LL = _status[1].second - _status[0].second;
                         _LL.push_back(LL);
                     }
                 }
@@ -115,7 +118,7 @@ void EventChains2::write(const Runnable2 *runnable, const Label2 *label)
                 // If the runnable is the first, then write the activation time,
                 // Otherwise, propagate the information
 
-                vector< pair<long long int, Tick> > status;
+								vector< pair<long long int, int64_t> > status;
 
                 if (ev->pullRunnable(status) == 0)
                     ev->pushLabel(status);
@@ -124,11 +127,12 @@ void EventChains2::write(const Runnable2 *runnable, const Label2 *label)
             }
         }
     }
+		*/
 }
 
 
 
-void saveData(const string & filename, const vector<Tick> &v)
+void saveData(const string & filename, const vector<int64_t> &v)
 {
     ofstream f;
     f.open(filename);
