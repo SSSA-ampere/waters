@@ -111,7 +111,7 @@ void parse_XMLmodel(void)
     int label_id = atoi(NthToken(label_name, "_", 1).c_str());
     const char *attribute_constant = pLabelElement->Attribute("constant");
 
-    int label_size_bit = atoi(pLabelElement->FirstChildElement("size")->Attribute("numberBits"));
+    int label_size_bit = atoi(pLabelElement->FirstChildElement("size")->Attribute("value"));
     bool label_isconstant;
 
     if(attribute_constant != nullptr && !strcmp(attribute_constant, "true"))
@@ -139,6 +139,7 @@ void parse_XMLmodel(void)
     pLabelElement = pLabelElement->NextSiblingElement("labels");
   }
 
+  printf("Labels extracted\n");
 
 
 
@@ -277,10 +278,10 @@ void parse_XMLmodel(void)
 
               printf("\t%s %d %s\n", label_name.c_str(),label_id, access.c_str());
             }
-            else
+            else // RunnableInstruction
             {
               //xsi:type="sw:InstructionsDeviation"
-              XMLElement *pdeviationElement = prunnableItemsElement->FirstChildElement("deviation");
+              XMLElement *pdeviationElement = prunnableItemsElement->FirstChildElement()->FirstChildElement("deviation");
               if(pdeviationElement == nullptr)
               {
                 printf("pdeviationElement == nullptr\n");
@@ -321,6 +322,7 @@ void parse_XMLmodel(void)
       runnable->setPosInTask(r_pos);
       runnableList.push_back(runnable);
       runnableName_runnableP[runnable->getName()] = runnable;
+
       pCallsElement = pCallsElement->NextSiblingElement();
     }
 
@@ -342,19 +344,25 @@ void parse_XMLmodel(void)
     return;
   }
 
-  XMLElement *pprocessAllocationElement_first = pmappingModelElement->FirstChildElement("processAllocation");
-  XMLElement *pprocessAllocationElement = pprocessAllocationElement_first;
-  while(pprocessAllocationElement != nullptr)
+  XMLElement *taskAllocationElement_first = pmappingModelElement->FirstChildElement("taskAllocation");
+  if (taskAllocationElement_first == nullptr)
   {
-    string task_name = firstToken(pprocessAllocationElement->Attribute("process"), "?");
-    int cpu_core_n = atoi(&NthToken(pprocessAllocationElement->Attribute("scheduler"), "_", 1)[4]);
+	  printf("task allocation not found\n");
+	  return;
+  }
+
+  XMLElement *taskAllocationElement = taskAllocationElement_first;
+  while(taskAllocationElement != nullptr)
+  {
+    string task_name = firstToken(taskAllocationElement->Attribute("task"), "?");
+    int cpu_core_n = atoi(&NthToken(taskAllocationElement->Attribute("scheduler"), "_", 1)[4]);
 
     printf("%s->\tCPU_CORE[%d]\n", task_name.c_str(), cpu_core_n);
 
     //task_name a task_pointer
     CPU_CORES[cpu_core_n].push_back(taskName_taskP[task_name]);
 
-    pprocessAllocationElement = pprocessAllocationElement->NextSiblingElement("processAllocation");
+	taskAllocationElement = taskAllocationElement->NextSiblingElement("taskAllocation");
   }
 
     printf("\n");
@@ -429,6 +437,43 @@ void parse_XMLmodel(void)
         peventChainsElement = peventChainsElement->NextSiblingElement("eventChains");
     }
 
+	//
+	// requirements mapping
+	//
+
+
+	XMLElement *prequirementsElement_first = pconstraintsModelElement->FirstChildElement("requirements");
+	if (prequirementsElement_first == nullptr)
+	{
+		printf("requirements not found\n");
+		return;
+	}
+
+	XMLElement *prequirementsElement = prequirementsElement_first;
+	while (prequirementsElement != nullptr) {
+
+		const char *req_taskname_string = prequirementsElement->Attribute("process");
+		int req_limit = prequirementsElement->FirstChildElement("limit")->FirstChildElement()->IntAttribute("value");
+		const char *req_limit_unit = prequirementsElement->FirstChildElement("limit")->FirstChildElement()->Attribute("unit");
+
+		string task_name = firstToken(req_taskname_string, "?");
+
+		int64_t deadline;
+
+		if (strcmp(req_limit_unit, "ms") == 0) 
+			deadline = static_cast<int64_t>(1000 * req_limit); // convert to us
+		else deadline = static_cast<int64_t>(req_limit);
+
+
+		printf("deadline of task %s = %llu \n", &task_name, deadline);
+
+		taskName_taskP[task_name]->setDeadline(req_limit); // set deadline of relative task
+
+		prequirementsElement = prequirementsElement->NextSiblingElement("requirements");
+	}
+
+
+
 
     printf("\n\nfine!\n");
 
@@ -456,7 +501,7 @@ Task_200ms -> 0.49
 Task_1000ms -> 0.18
 Task_10ms -> 0.84
        */
-
+/*
       if (t->getName() == "ISR_9")
           t->setScalingFactor(0.58);
       else if (t->getName() == "Angle_Sync")
@@ -469,6 +514,7 @@ Task_10ms -> 0.84
           t->setScalingFactor(0.18);
       else if (t->getName() == "Task_10ms")
           t->setScalingFactor(0.84);
+		  */
   }
 /*
   try {
@@ -489,7 +535,7 @@ Task_10ms -> 0.84
     cout << e.what() << endl;
   }
 */
-  //system("pause");
+  system("pause");
   return 0;
   /*
     try {

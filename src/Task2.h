@@ -58,6 +58,8 @@ public:
         return scalingFactor;
     }
 
+	void setDeadline(int64_t d);
+
 
 
 private:
@@ -80,6 +82,8 @@ private:
 
     Task_Stimuli stimuli;
     Task_Preemption preemption;
+
+	int64_t deadline;
 
 
 

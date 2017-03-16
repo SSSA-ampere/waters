@@ -112,4 +112,8 @@ bool Task2::isPeriodic()
         return false;
 }
 
+void Task2::setDeadline(int64_t d)
+{
+	deadline = d;
+}
 
