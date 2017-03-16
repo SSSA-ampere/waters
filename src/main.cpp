@@ -1,6 +1,6 @@
 /*
-  In this example, a simple system is simulated, consisting of two
-  real-time tasks scheduled by EDF on a single processor.
+	In this example, a simple system is simulated, consisting of two
+	real-time tasks scheduled by EDF on a single processor.
 */
 #include <kernel.hpp>
 #include <edfsched.hpp>
@@ -517,7 +517,7 @@ Task_10ms -> 0.84
       else if (t->getName() == "Task_10ms")
           t->setScalingFactor(0.84);
   }
-
+/*
   try {
     Builder b(CPU_CORES, CPU_NUM);
     //SIMUL.run((long long int)2E9); // 20 seconds
@@ -535,7 +535,7 @@ Task_10ms -> 0.84
   } catch (BaseExc &e) {
     cout << e.what() << endl;
   }
-
+*/
   //system("pause");
   return 0;
   /*
