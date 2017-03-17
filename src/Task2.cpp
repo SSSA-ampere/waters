@@ -44,6 +44,16 @@ int64_t Task2::getPeriod()
     return period;
 }
 
+void Task2::setDeadline(int64_t d)
+{
+	deadline = d;
+}
+
+int64_t Task2::getDeadline()
+{
+	return deadline;
+}
+
 void Task2::setStimuli(Task_Stimuli s)
 {
     stimuli = s;
@@ -112,8 +122,4 @@ bool Task2::isPeriodic()
         return false;
 }
 
-void Task2::setDeadline(int64_t d)
-{
-	deadline = d;
-}
 

@@ -30,6 +30,9 @@ public:
     void insertReadLabel(int id);
     void insertWriteLabel(int id);
 
+	void insertReadLabel_num_acess(int n);
+	void insertWriteLabel_num_acess(int n);
+
     void setDistribParams(int l, int u, string &prp, int m);
 
     void setTask(Task2 *t);
@@ -39,7 +42,7 @@ public:
 
     void addChain(EventChains2 *C);
 
-		void readLabel(int l, const int64_t &activationTime);
+	void readLabel(int l, const int64_t &activationTime);
     void writeLabel(int l);
 
     void increaseID();
@@ -48,9 +51,18 @@ public:
     vector<int> labelsRead_list;
     vector<int> labelsWrite_list;
 
-		void pushRT(const int64_t &rt);
+	vector<int> labelsRead_num_access;
+	vector<int> labelsWrite_num_access;
+
+
+	void pushRT(const int64_t &rt);
 
     void saveRT();
+
+	int64_t getUpperBound();
+	int64_t getLowerBound();
+	int64_t getMean();
+	string getPRemainPromille();
 
 private:
     string name;

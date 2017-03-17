@@ -36,6 +36,8 @@ public:
     int64_t getMinInterArrivalTime();
     int64_t getMaxInterArrivalTime();
 
+	void setDeadline(int64_t d);
+	int64_t getDeadline();
 
     void setMultipleActivationTaskLimit(int matl);
     int getMultipleActivationTaskLimit();
@@ -48,17 +50,20 @@ public:
       return preemption == cooperative;
     }
 
-    vector<Runnable2 *> runnables_list;
+	void setScalingFactor(double s) {
+		scalingFactor = s;
+	}
 
-    void setScalingFactor(double s) {
-        scalingFactor = s;
-    }
+	double getScalingFactor() const {
+		return scalingFactor;
+	}
 
-    double getScalingFactor() const {
-        return scalingFactor;
-    }
 
-	void setDeadline(int64_t d);
+
+    vector<Runnable2 *> runnables_list; //change with ID of runnables
+
+
+
 
 
 

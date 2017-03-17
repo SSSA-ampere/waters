@@ -10,6 +10,8 @@
 
 #include "shared.h"
 
+#include "copy_in_newstruct.h"
+
 #include <vector>
 #include <map>
 
@@ -257,7 +259,7 @@ void parse_XMLmodel(void)
           while (prunnableItemsElement != nullptr)
           {
             const char *data_value = prunnableItemsElement->Attribute("data");
-            if(data_value != nullptr)
+            if(data_value != nullptr) // read and write instructions
             {
               string label_name = firstToken(data_value, "?");
               string access = string(prunnableItemsElement->Attribute("access"));
@@ -265,15 +267,22 @@ void parse_XMLmodel(void)
 
               //runnable->label
               //label->runnable (in ordine[?])
-              if(access == "read")
+              if(access == "read") //read
               {
+
+				int num_access = prunnableItemsElement->FirstChildElement()->FirstChildElement()->IntAttribute("value");
+				runnable->insertReadLabel_num_acess(num_access);
                 runnable->insertReadLabel(label_id);
                 labelList[label_id]->runnablesRead_list.push_back(runnable);
+
+
+
               }
-              else
+              else //write
               {
                 runnable->insertWriteLabel(label_id);
-                labelList[label_id]->runnablesWrite_list.push_back(runnable);
+				runnable->insertWriteLabel_num_acess(1); // default 1 access
+                labelList[label_id]->runnablesWrite_list.push_back(runnable);			
               }
 
               printf("\t%s %d %s\n", label_name.c_str(),label_id, access.c_str());
@@ -487,6 +496,8 @@ int main()
   //weibullConverterTest();
 
   parse_XMLmodel();
+
+  copy_in_newstruct();
 
   fflush(stdout);
 

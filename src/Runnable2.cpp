@@ -30,11 +30,13 @@ string Runnable2::getName()
 void Runnable2::setLabelsReadListSize(int size)
 {
     labelsRead_list.reserve(size);
+	labelsRead_num_access.reserve(size);
 }
 
 void Runnable2::setLabelsWriteListSize(int size)
 {
     labelsWrite_list.reserve(size);
+	labelsWrite_num_access.reserve(size);
 }
 
 void Runnable2::insertReadLabel(int id)
@@ -45,6 +47,16 @@ void Runnable2::insertReadLabel(int id)
 void Runnable2::insertWriteLabel(int id)
 {
     labelsWrite_list.push_back(id);
+}
+
+void  Runnable2::insertReadLabel_num_acess(int n)
+{
+	labelsRead_num_access.push_back(n);
+}
+
+void  Runnable2::insertWriteLabel_num_acess(int n)
+{
+	labelsWrite_num_access.push_back(n);
 }
 
 void Runnable2::setDistribParams(int l, int u, string &prp, int m)
@@ -118,4 +130,21 @@ void Runnable2::saveRT()
         f << (long long int)(o) << endl;
 
     f.close();
+}
+
+int64_t Runnable2::getUpperBound()
+{
+	return upperBound;
+}
+int64_t Runnable2::getLowerBound()
+{
+	return lowerBound;
+}
+int64_t Runnable2::getMean()
+{
+	return mean;
+}
+string Runnable2::getPRemainPromille()
+{
+	return pRemainPromille;
 }

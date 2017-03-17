@@ -26,7 +26,7 @@ void Tokenize(const string &str,
 
 int tous(string &s)
 {
-    int mul = 1000;
+    int mul = 1;
     int m2 = s.length()-2;
 
     int pos = s.find('?');
