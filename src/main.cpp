@@ -12,6 +12,8 @@
 
 #include "copy_in_newstruct.h"
 
+#include "annealing.h"
+
 #include <vector>
 #include <map>
 
@@ -495,6 +497,9 @@ int main()
 
   //weibullConverterTest();
 
+  annealing_test();
+  return 0;
+
   parse_XMLmodel();
 
   copy_in_newstruct();
@@ -525,7 +530,7 @@ Task_10ms -> 0.84
           t->setScalingFactor(0.18);
       else if (t->getName() == "Task_10ms")
           t->setScalingFactor(0.84);
-		  */
+          */
   }
 /*
   try {
