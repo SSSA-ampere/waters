@@ -32,6 +32,7 @@ void copy_in_newstruct(void)
 				ro.exec_time_max = ri->getUpperBound();
 				ro.exec_time_min = ri->getLowerBound();
 				ro.exec_time_mean = ri->getMean();
+				ro.name = ri->getName();
 
 				for (int li : ri->labelsRead_list) {
 					ro.labels_r.push_back(li);
@@ -58,10 +59,34 @@ void copy_in_newstruct(void)
 
 		lo.id = li->getid();
 		lo.bitLen = li->getBitSize();
+		lo.ram = GRAM;
 
 		labels.push_back(lo);
-
 	}
+
+
+	for (EventChains2* ei : eventChains) {
+
+		Event_Chain eo;
+
+		eo.name = ei->name;
+
+		for (EventChains2_elem *ci : ei->eventChains_elems) {
+
+			for (Runnable r : runnables) {
+				if (ci->runnable_response->getName().compare(r.name) == 0)
+					eo.runnables_response.push_back(r.id);
+				if (ci->runnable_stimulus->getName().compare(r.name) == 0)
+					eo.runnables_stimulus.push_back(r.id);
+			}
+
+			eo.labels.push_back(ci->label_wr->getid());
+				
+		}
+
+		event_chains.push_back(eo);			
+	}
+
 
 }
 

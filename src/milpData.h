@@ -22,6 +22,8 @@ struct RAM {
 };
 
 struct Runnable {
+
+	std::string name;
 	unsigned int id;
 	unsigned int task_id;
 	uint64_t exec_time_max;
@@ -46,6 +48,17 @@ struct Task { // TODO inserire periodico o ISR
 	std::vector<unsigned int> runnables;
 };
 
+struct Event_Chain {
+
+	std::string name;
+	unsigned int id;
+	std::vector<unsigned int> runnables_stimulus;
+	std::vector<unsigned int> runnables_response;
+	std::vector<unsigned int> labels;
+
+};
+
 extern std::vector<Runnable> runnables;
 extern std::vector<Label> labels;
 extern std::vector<Task> CPU[4];
+extern std::vector<Event_Chain> event_chains;
