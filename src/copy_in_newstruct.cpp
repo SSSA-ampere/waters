@@ -19,6 +19,7 @@ void copy_in_newstruct(void)
 			to.prio = ti->getPriority();
 			to.interarrival_max = ti->getMaxInterArrivalTime();
 			to.interarrival_min = ti->getMinInterArrivalTime();
+			to.wcet = 0;
 
 			CPU[i].push_back(to);
 
@@ -49,6 +50,7 @@ void copy_in_newstruct(void)
 
 				runnables.push_back(ro);
 				t->runnables.push_back(ro.id);
+				t->wcet += ro.exec_time_max;
 			}
 		}
 	}

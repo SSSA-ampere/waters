@@ -13,6 +13,7 @@
 #include "copy_in_newstruct.h"
 
 #include "annealing.h"
+#include "RT.h"
 
 #include <vector>
 #include <map>
@@ -491,7 +492,14 @@ int main()
 
   copy_in_newstruct();
 
-  annealing_test();
+  // Assunzione: priority value alto, priotita` alta
+
+  for (unsigned int i=0; i<CPU_NUM; ++i) {
+    ADRT(CPU[i]);
+  }
+
+
+  //annealing_test();
 
   fflush(stdout);
 

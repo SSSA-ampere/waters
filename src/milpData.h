@@ -43,6 +43,8 @@ struct Task { // TODO inserire periodico o ISR
 	unsigned int prio;
 	uint64_t deadline;
 	uint64_t period;
+	uint64_t response_time;
+	uint64_t wcet;
 	uint64_t interarrival_max;
 	uint64_t interarrival_min;
 	std::vector<unsigned int> runnables;
