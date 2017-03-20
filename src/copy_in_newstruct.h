@@ -9,5 +9,9 @@ extern vector<Task2 *> CPU_CORES[4];
 extern vector<Label2 *> labelList;
 extern vector<Task2 *> taskList;
 extern vector<EventChains2 *> eventChains;
+extern vector<Runnable2 *> runnableList;
+
+template<class T>
+void deleter(T &v);
 
 void copy_in_newstruct(void);

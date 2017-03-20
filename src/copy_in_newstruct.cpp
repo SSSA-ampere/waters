@@ -76,18 +76,29 @@ void copy_in_newstruct(void)
 			for (Runnable r : runnables) {
 				if (ci->runnable_response->getName().compare(r.name) == 0)
 					eo.runnables_response.push_back(r.id);
-				if (ci->runnable_stimulus->getName().compare(r.name) == 0)
+				if (ci->runnable_stimulus->getName().compare(r.name) == 0) {
 					eo.runnables_stimulus.push_back(r.id);
+					eo.runnables_chain.push_back(r.id);
+				}
 			}
-
 			eo.labels.push_back(ci->label_wr->getid());
 				
 		}
-
+		eo.runnables_chain.push_back(eo.runnables_response.back());
 		event_chains.push_back(eo);			
 	}
 
-
+	deleter(taskList);
+	deleter(runnableList);
+	deleter(labelList);
+	deleter(eventChains);
 }
 
 
+template<class T>
+void deleter(T &v)
+{
+	for (auto p : v)
+		delete p;
+	v.resize(0);
+}

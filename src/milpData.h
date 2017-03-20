@@ -21,7 +21,7 @@ struct RAM {
 	std::vector<unsigned int> labels;
 };
 
-struct Runnable {
+struct Runnable { // add bool = response time important (end of task or inchain)
 
 	std::string name;
 	unsigned int id;
@@ -55,6 +55,7 @@ struct Event_Chain {
 	std::vector<unsigned int> runnables_stimulus;
 	std::vector<unsigned int> runnables_response;
 	std::vector<unsigned int> labels;
+	std::vector<unsigned int> runnables_chain;
 
 };
 
