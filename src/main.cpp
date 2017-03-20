@@ -546,7 +546,9 @@ Task_10ms -> 0.84
     cout << e.what() << endl;
   }
 */
+#ifdef _WIN32
   system("pause");
+#endif
   return 0;
   /*
     try {
