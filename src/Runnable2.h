@@ -33,7 +33,7 @@ public:
 	void insertReadLabel_num_acess(int n);
 	void insertWriteLabel_num_acess(int n);
 
-    void setDistribParams(int l, int u, string &prp, int m);
+    void setDistribParams(double l, double u, string &prp, double m);
 
     void setTask(Task2 *t);
     void setPosInTask(int i);
@@ -59,9 +59,9 @@ public:
 
     void saveRT();
 
-	int64_t getUpperBound();
-	int64_t getLowerBound();
-	int64_t getMean();
+  double getUpperBound();
+  double getLowerBound();
+  double getMean();
 	string getPRemainPromille();
 
 private:
@@ -69,12 +69,12 @@ private:
 
     vector<EventChains2 *>inChain;
 
-		int64_t lowerBound;
-		int64_t upperBound;
+    double lowerBound;
+    double upperBound;
 
     //distribution params
     string pRemainPromille;
-		int64_t mean;
+    double mean;
 
 		std::vector<int64_t> _responseTimes;
 

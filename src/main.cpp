@@ -24,6 +24,14 @@ using namespace tinyxml2;
 using namespace std;
 
 
+const uint64_t instructions_per_us = 2e8 / 1e6;
+
+double cycles2us(uint64_t instructions)
+{
+  return instructions / instructions_per_us;
+}
+
+
 #ifndef XMLCheckResult
 #define XMLCheckResult(a_eResult) if (a_eResult != XML_SUCCESS) { printf("Error: %i\n", a_eResult); return; }
 #endif
@@ -305,7 +313,7 @@ void parse_XMLmodel(void)
               string pRemainPromille = string(pdeviationElement->FirstChildElement("distribution")->Attribute("pRemainPromille"));
               int mean = pdeviationElement->FirstChildElement("distribution")->FirstChildElement()->IntAttribute("value");
 
-              runnable->setDistribParams(lowerBound, upperBound, pRemainPromille, mean);
+              runnable->setDistribParams(cycles2us(lowerBound), cycles2us(upperBound), pRemainPromille, cycles2us(mean));
 
               printf("\t lowerBound=%d upperBound=%d pRemainPromille=%s mean=%d\n", lowerBound, upperBound, pRemainPromille.c_str(), mean);
             }

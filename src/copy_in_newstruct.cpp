@@ -50,7 +50,7 @@ void copy_in_newstruct(void)
 
 				runnables.push_back(ro);
 				t->runnables.push_back(ro.id);
-				t->wcet += ro.exec_time_max;
+        t->wcet += ro.exec_time_mean;
 			}
 		}
 	}

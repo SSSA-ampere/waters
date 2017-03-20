@@ -59,7 +59,7 @@ void  Runnable2::insertWriteLabel_num_acess(int n)
 	labelsWrite_num_access.push_back(n);
 }
 
-void Runnable2::setDistribParams(int l, int u, string &prp, int m)
+void Runnable2::setDistribParams(double l, double u, string &prp, double m)
 {
     lowerBound = l;
     upperBound = u;
@@ -132,15 +132,15 @@ void Runnable2::saveRT()
     f.close();
 }
 
-int64_t Runnable2::getUpperBound()
+double Runnable2::getUpperBound()
 {
 	return upperBound;
 }
-int64_t Runnable2::getLowerBound()
+double Runnable2::getLowerBound()
 {
 	return lowerBound;
 }
-int64_t Runnable2::getMean()
+double Runnable2::getMean()
 {
 	return mean;
 }
