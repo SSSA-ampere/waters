@@ -78,7 +78,7 @@ int countSiblingElements(XMLElement *pElement, char *elem_name, char *attr, char
 void parse_XMLmodel(void)
 {
   XMLDocument xmlDoc;
-	XMLError eResult = xmlDoc.LoadFile(MODEL_PATH);
+  XMLError eResult = xmlDoc.LoadFile(MODEL_PATH);
 
   XMLCheckResult(eResult);
 
@@ -272,8 +272,8 @@ void parse_XMLmodel(void)
               if(access == "read") //read
               {
 
-				int num_access = prunnableItemsElement->FirstChildElement()->FirstChildElement()->IntAttribute("value");
-				runnable->insertReadLabel_num_acess(num_access);
+        int num_access = prunnableItemsElement->FirstChildElement()->FirstChildElement()->IntAttribute("value");
+        runnable->insertReadLabel_num_acess(num_access);
                 runnable->insertReadLabel(label_id);
                 labelList[label_id]->runnablesRead_list.push_back(runnable);
 
@@ -283,8 +283,8 @@ void parse_XMLmodel(void)
               else //write
               {
                 runnable->insertWriteLabel(label_id);
-				runnable->insertWriteLabel_num_acess(1); // default 1 access
-                labelList[label_id]->runnablesWrite_list.push_back(runnable);			
+        runnable->insertWriteLabel_num_acess(1); // default 1 access
+                labelList[label_id]->runnablesWrite_list.push_back(runnable);
               }
 
               printf("\t%s %d %s\n", label_name.c_str(),label_id, access.c_str());
@@ -358,8 +358,8 @@ void parse_XMLmodel(void)
   XMLElement *taskAllocationElement_first = pmappingModelElement->FirstChildElement("taskAllocation");
   if (taskAllocationElement_first == nullptr)
   {
-	  printf("task allocation not found\n");
-	  return;
+    printf("task allocation not found\n");
+    return;
   }
 
   XMLElement *taskAllocationElement = taskAllocationElement_first;
@@ -373,7 +373,7 @@ void parse_XMLmodel(void)
     //task_name a task_pointer
     CPU_CORES[cpu_core_n].push_back(taskName_taskP[task_name]);
 
-	taskAllocationElement = taskAllocationElement->NextSiblingElement("taskAllocation");
+  taskAllocationElement = taskAllocationElement->NextSiblingElement("taskAllocation");
   }
 
     printf("\n");
@@ -448,176 +448,55 @@ void parse_XMLmodel(void)
         peventChainsElement = peventChainsElement->NextSiblingElement("eventChains");
     }
 
-	//
-	// requirements mapping
-	//
+  //
+  // requirements mapping
+  //
 
 
-	XMLElement *prequirementsElement_first = pconstraintsModelElement->FirstChildElement("requirements");
-	if (prequirementsElement_first == nullptr)
-	{
-		printf("requirements not found\n");
-		return;
-	}
+  XMLElement *prequirementsElement_first = pconstraintsModelElement->FirstChildElement("requirements");
+  if (prequirementsElement_first == nullptr)
+  {
+    printf("requirements not found\n");
+    return;
+  }
 
-	XMLElement *prequirementsElement = prequirementsElement_first;
-	while (prequirementsElement != nullptr) {
+  XMLElement *prequirementsElement = prequirementsElement_first;
+  while (prequirementsElement != nullptr) {
 
-		const char *req_taskname_string = prequirementsElement->Attribute("process");
-		int req_limit = prequirementsElement->FirstChildElement("limit")->FirstChildElement()->IntAttribute("value");
-		const char *req_limit_unit = prequirementsElement->FirstChildElement("limit")->FirstChildElement()->Attribute("unit");
+    const char *req_taskname_string = prequirementsElement->Attribute("process");
+    int req_limit = prequirementsElement->FirstChildElement("limit")->FirstChildElement()->IntAttribute("value");
+    const char *req_limit_unit = prequirementsElement->FirstChildElement("limit")->FirstChildElement()->Attribute("unit");
 
-		string task_name = firstToken(req_taskname_string, "?");
+    string task_name = firstToken(req_taskname_string, "?");
 
-		int64_t deadline;
+    int64_t deadline;
 
-		if (strcmp(req_limit_unit, "ms") == 0) 
-			deadline = static_cast<int64_t>(1000 * req_limit); // convert to us
-		else deadline = static_cast<int64_t>(req_limit);
-
-
-		printf("deadline of task %s = %llu \n", &task_name, deadline);
-
-		taskName_taskP[task_name]->setDeadline(req_limit); // set deadline of relative task
-
-		prequirementsElement = prequirementsElement->NextSiblingElement("requirements");
-	}
+    if (strcmp(req_limit_unit, "ms") == 0)
+      deadline = static_cast<int64_t>(1000 * req_limit); // convert to us
+    else deadline = static_cast<int64_t>(req_limit);
 
 
+    printf("deadline of task %s = %llu \n", &task_name, deadline);
 
+    taskName_taskP[task_name]->setDeadline(req_limit); // set deadline of relative task
 
+    prequirementsElement = prequirementsElement->NextSiblingElement("requirements");
+  }
     printf("\n\nfine!\n");
-
 }
 
 int main()
 {
-  //test_weibull();
-  //test_tinyXML();
-
-  //weibullConverterTest();
-
-  annealing_test();
-  return 0;
-
   parse_XMLmodel();
 
   copy_in_newstruct();
 
+  annealing_test();
+
   fflush(stdout);
 
-  for (Task2 * t : taskList) {
-      t->setScalingFactor(1);
-
-      /*
-ISR_9 -> 0.58
-Angle_Sync -> 0.37
-Task_100ms -> 0.28
-Task_200ms -> 0.49
-Task_1000ms -> 0.18
-Task_10ms -> 0.84
-       */
-/*
-      if (t->getName() == "ISR_9")
-          t->setScalingFactor(0.58);
-      else if (t->getName() == "Angle_Sync")
-          t->setScalingFactor(0.37);
-      else if (t->getName() == "Task_100ms")
-          t->setScalingFactor(0.28);
-      else if (t->getName() == "Task_200ms")
-          t->setScalingFactor(0.49);
-      else if (t->getName() == "Task_1000ms")
-          t->setScalingFactor(0.18);
-      else if (t->getName() == "Task_10ms")
-          t->setScalingFactor(0.84);
-          */
-  }
-/*
-  try {
-    Builder b(CPU_CORES, CPU_NUM);
-    //SIMUL.run((long long int)2E9); // 20 seconds
-    SIMUL.run((long long int)3600E9);
-
-    for (auto e : eventChains) {
-        e->saveFF(e->name + "_FF.txt");
-        e->saveLL(e->name + "_LL.txt");
-
-        for (auto ee : e->eventChains_elems) {
-            ee->runnable_stimulus->saveRT();
-        }
-        e->runnable_response->saveRT();
-    }
-  } catch (BaseExc &e) {
-    cout << e.what() << endl;
-  }
-*/
 #ifdef _WIN32
   system("pause");
 #endif
   return 0;
-  /*
-    try {
-
-        ///ciao balsini
-
-        SIMUL.dbg.enable("All");
-        SIMUL.dbg.setStream("debug.txt");
-        // set the trace file. This can be visualized by the
-        // rttracer tool
-        //JavaTrace jtrace("trace.trc");
-
-        TextTrace ttrace("trace.txt");
-        JSONTrace jtrace("trace.json");
-
-        cout << "Creating Scheduler and kernel" << endl;
-        EDFScheduler edfsched;
-        RTKernel kern(&edfsched);
-
-        cout << "Creating the first task" << endl;
-        PeriodicTask t1(4, 4, 0, "Task0");
-
-        cout << "Inserting code" << endl;
-        t1.insertCode("fixed(2);");
-        //t1.setAbort(false);
-
-
-        cout << "Creating the second task" << endl;
-        PeriodicTask t2(5, 5, 0, "Task1");
-
-        cout << "Inserting code" << endl;
-        t2.insertCode("fixed(2);");
-        //t2.setAbort(false);
-
-        cout << "Creating the third task" << endl;
-        PeriodicTask t3(6, 6, 0, "Task2");
-        cout << "Inserting code" << endl;
-        t3.insertCode("fixed(2);");
-        //t3.setAbort(false);
-
-
-        cout << "Setting up traces" << endl;
-
-        // new way
-        ttrace.attachToTask(&t1);
-        ttrace.attachToTask(&t2);
-        ttrace.attachToTask(&t3);
-
-        jtrace.attachToTask(&t1);
-        jtrace.attachToTask(&t2);
-        jtrace.attachToTask(&t3);
-
-        cout << "Adding tasks to schedulers" << endl;
-
-        kern.addTask(t1, "");
-        kern.addTask(t2, "");
-        kern.addTask(t3, "");
-//        kern.addTask(t4, "");
-
-        cout << "Ready to run!" << endl;
-        // run the simulation for 500 units of time
-        SIMUL.run(500 * 1000);
-    } catch (BaseExc &e) {
-        cout << e.what() << endl;
-    }
-    */
 }
