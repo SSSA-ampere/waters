@@ -5,6 +5,8 @@ set(MODEL_PATH
   "${CMAKE_SOURCE_DIR}/model/ChallengeModel2017modified.amxmi"
   CACHE STRING "Filepath of the model file")
 
+set(CMAKE_BUILD_TYPE Debug)
+
 message("Model path: " ${MODEL_PATH})
 
 # Include dirs.

@@ -3,7 +3,8 @@ include_directories(.)
 include_directories(./tinyxml)
 
 set (SOURCE_FILES main.cpp strtools.cpp Task2.cpp Runnable2.cpp
-  Label2.cpp EventChains2.cpp EventChains2_elem.cpp milpData.cpp copy_in_newstruct.cpp)
+  Label2.cpp EventChains2.cpp EventChains2_elem.cpp milpData.cpp copy_in_newstruct.cpp
+  annealing.cpp)
 
 add_executable (${PROJECT_NAME} ${SOURCE_FILES})
 
