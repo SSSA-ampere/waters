@@ -4,15 +4,17 @@
 
 enum RAM_LOC {
 	GRAM,
-	LRAM_0,
-	LRAM_1,
-	LRAM_2,
-	LRAM_3
+	LRAM_0 = 1,
+	LRAM_1 = 2,
+	LRAM_2 = 4,
+	LRAM_3 = 8
 };
 
 struct Label {
 	unsigned int id;
 	unsigned int bitLen;
+	std::vector<unsigned int> runnable_users;
+	uint8_t used_by_CPU;
 	RAM_LOC ram;
 };
 
@@ -26,6 +28,7 @@ struct Runnable { // add bool = response time important (end of task or inchain)
 	std::string name;
 	unsigned int id;
 	unsigned int task_id;
+	unsigned int cpu_id;
 	uint64_t exec_time_max;
 	uint64_t exec_time_min;
 	uint64_t exec_time_mean;

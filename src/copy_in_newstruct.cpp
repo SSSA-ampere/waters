@@ -6,7 +6,20 @@ void copy_in_newstruct(void)
 	static unsigned int task_id_counter = 0;
 	static unsigned int runnable_id_counter = 0;
 
+	for (Label2* li : labelList) {
+
+		Label lo;
+
+		lo.id = li->getid();
+		lo.bitLen = li->getBitSize();
+		lo.ram = GRAM;
+		lo.used_by_CPU = 0;
+
+		labels.push_back(lo);
+	}
+
 	for (int i = 0; i < 4; i++) {
+
 
 		for (Task2 * ti : CPU_CORES[i]) {
 			Task to;
@@ -29,6 +42,7 @@ void copy_in_newstruct(void)
 
 				ro.id = runnable_id_counter++;
 				ro.task_id = to.id;
+				ro.cpu_id = i;
 				ro.exec_time_max = ri->getUpperBound();
 				ro.exec_time_min = ri->getLowerBound();
 				ro.exec_time_mean = ri->getMean();
@@ -36,32 +50,25 @@ void copy_in_newstruct(void)
 
 				for (int li : ri->labelsRead_list) {
 					ro.labels_r.push_back(li);
+					labels[li].runnable_users.push_back(ro.id);
+					labels[li].used_by_CPU |= 1 << i;
 				}
-				for (int li : ri->labelsRead_num_access) {
-					ro.labels_r_access.push_back(li);
+				for (int ni : ri->labelsRead_num_access) {
+					ro.labels_r_access.push_back(ni);
 				}
 				for (int li : ri->labelsWrite_list) {
 					ro.labels_w.push_back(li);
+					labels[li].runnable_users.push_back(ro.id);
+					labels[li].used_by_CPU |= 1 << i;
 				}
-				for (int li : ri->labelsWrite_num_access) {
-					ro.labels_w_access.push_back(li);
+				for (int ni : ri->labelsWrite_num_access) {
+					ro.labels_w_access.push_back(ni);
 				}
 
 				runnables.push_back(ro);
 				t->runnables.push_back(ro.id);
 			}
 		}
-	}
-
-	for (Label2* li : labelList) {
-
-		Label lo;
-
-		lo.id = li->getid();
-		lo.bitLen = li->getBitSize();
-		lo.ram = GRAM;
-
-		labels.push_back(lo);
 	}
 
 

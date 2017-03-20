@@ -162,3 +162,52 @@ void annealing_test()
   cout << "With cost: " << r.second << endl;
 }
 
+
+
+double inline computeWCET(unsigned int run_id) 
+{
+	Runnable r = runnables[run_id];
+	double interf = 0;
+	int i = 0;
+	int CC;
+
+	for (int l_id : r.labels_r) { // for all labels read TODO add labels written
+
+		Label l = labels[l_id];
+		uint8_t usedby = l.used_by_CPU;
+		int label_acc = r.labels_r_access[i];
+
+		if (r.cpu_id == convert_ram_loc_to_id(l.ram))
+			CC = 1;
+		else CC = 9;
+
+		interf += label_acc*(CC + cores_counter(usedby)*9); // TODO specificare latency diversa per runnables che hanno label locale
+		
+		i++;
+
+	}
+
+	double WCET = r.exec_time_max + interf;
+
+
+}
+
+
+int cores_counter(uint8_t b) {
+
+	int counter = 0;
+	while (b != 0) {
+		counter += b & 1;
+		b = b >> 1;
+		}
+	return counter - 1;
+}
+
+int convert_ram_loc_to_id(RAM_LOC r) {
+
+	if (r == GRAM) return 0;
+	if (r == LRAM_0) return 1;
+	if (r == LRAM_1) return 2;
+	if (r == LRAM_2) return 3;
+	if (r == LRAM_3) return 4;
+}
