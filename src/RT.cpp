@@ -9,11 +9,11 @@ using namespace std;
 int64_t min_slack(const std::vector<Label> &s)
 {
   int64_t min_slack = INT64_MAX;
+  int64_t min_slack_core;
 
   try {
     for (unsigned int i=0; i<4; ++i) {
-      int64_t min_slack_core = ADRT(CPU[i]);
-
+      min_slack_core = ADRT(CPU[i]);
       if (min_slack_core < min_slack)
         min_slack = min_slack_core;
     }
@@ -32,7 +32,7 @@ static inline uint64_t Ii(const Task &k, uint64_t t)
   uint64_t C_j;
   double T_j;
 
-  for (Task &tj : CPU[k.cpu_id]) {
+  for (Task const &tj : CPU[k.cpu_id]) {
     if (tj.prio > k.prio) {
       T_j = tj.period;
       C_j = tj.wcet;

@@ -49,8 +49,10 @@ void copy_in_newstruct(void)
 				ro.cpu_id = i;
 				ro.exec_time_max = ri->getUpperBound();
 				ro.exec_time_min = ri->getLowerBound();
-				ro.exec_time_mean = ri->getMean();
+        ro.exec_time_mean = ri->getMean();
 				ro.name = ri->getName();
+
+        ro.exec_time = ri->getLowerBound();
 
 				for (int li : ri->labelsRead_list) {
 					ro.labels_r.push_back(li);
@@ -71,7 +73,7 @@ void copy_in_newstruct(void)
 
 				runnables.push_back(ro);
 				t->runnables.push_back(ro.id);
-        t->wcet += ro.exec_time_min;
+        t->wcet += ro.exec_time;
 			}
 		}
 	}

@@ -479,7 +479,7 @@ void parse_XMLmodel(void)
 
     cout << "deadline of task " << task_name << " = " << deadline << endl;
 
-    taskName_taskP[task_name]->setDeadline(req_limit); // set deadline of relative task
+    taskName_taskP[task_name]->setDeadline(deadline); // set deadline of relative task
 
     prequirementsElement = prequirementsElement->NextSiblingElement("requirements");
   }

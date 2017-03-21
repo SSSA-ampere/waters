@@ -141,7 +141,7 @@ static inline Solution ComputeNewSolutionHeavy(const Solution &s)
   std::default_random_engine generator(seed);
   std::uniform_int_distribution<int> dist_label(0, s.size()-1);
   std::uniform_int_distribution<int> dist_ram(0, 4);
-  std::uniform_int_distribution<int> dist_noise(1, 10);
+  std::uniform_int_distribution<int> dist_noise(s.size() * 0.01, s.size() * 0.05);
   Solution newSol(s);
   unsigned int l, p;
 
@@ -211,7 +211,7 @@ void update_wcets(const Solution &s)
       for (unsigned int k=0; k<CPU[i].at(j).runnables.size(); ++k) {
         // foreach runnable
         ram_interference += computeInterf(CPU[i].at(j).runnables.at(k), s);
-        runnable_wcet += runnables[CPU[i].at(j).runnables.at(k)].exec_time_min;
+        runnable_wcet += runnables[CPU[i].at(j).runnables.at(k)].exec_time;
       }
 
       CPU[i].at(j).wcet = runnable_wcet + ram_interference;
@@ -250,7 +250,7 @@ std::pair<Solution, double> annealing()
 {
   unsigned int seed = std::chrono::system_clock::now().time_since_epoch().count();
   std::default_random_engine generator(seed);
-  std::uniform_int_distribution<int> dist_eval(0, 10);
+  std::uniform_int_distribution<int> dist_eval(0, 1);
   Solution s, s_new, s_opt;
   double   c, c_new, c_opt;
   unsigned int max_I, max_E;
@@ -262,7 +262,7 @@ std::pair<Solution, double> annealing()
   compute_coremap(s);
 
   s_opt = s;
-  c_opt = EvaluateSolution(s);
+  c_opt = c = EvaluateSolution(s);
 
   new_optimal_solution_found(c_opt);
 
@@ -274,7 +274,7 @@ std::pair<Solution, double> annealing()
 
     while (max_I < MAX_I && max_E < MAX_E) {
 
-      if (dist_eval(generator) < 2)
+      if (dist_eval(generator))
         s_new = ComputeNewSolutionHeavy(s);
       else
         s_new = ComputeNewSolutionLight(s);
@@ -295,7 +295,7 @@ std::pair<Solution, double> annealing()
           new_optimal_solution_found(c_opt);
         }
 
-        max_I++;
+        ++max_I;
       } else {
         //cout << "Worst solution - ";
         if (ExpProb(dc, T)) {
@@ -309,7 +309,7 @@ std::pair<Solution, double> annealing()
         }
       }
 
-      max_E++;
+      ++max_E;
     }
   }
   return std::make_pair(s_opt, c_opt);

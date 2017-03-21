@@ -39,6 +39,7 @@ struct Runnable { // add bool = response time important (end of task or inchain)
   double exec_time_max;
   double exec_time_min;
   double exec_time_mean;
+  double exec_time;
 	std::vector<unsigned int> labels_r;
 	std::vector<unsigned int> labels_r_access;
 	std::vector<unsigned int> labels_w;
