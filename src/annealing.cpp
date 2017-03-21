@@ -1,5 +1,6 @@
 #include "annealing.h"
 #include "milpData.h"
+#include "RT.h"
 
 #include <vector>
 #include <cmath>
@@ -73,6 +74,12 @@ static inline Solution ComputeNewSolution(const Solution &s)
 
 static inline double EvaluateSolution(const Solution &s)
 {
+  double ret = min_slack();
+
+  cout << "Minimum slack found: " << ret << endl;
+
+  return ret;
+#if 0
   unsigned int counter = 0; // Test trick to make position in vector significant
   unsigned int tot = 0;
   for (auto v : s) {
@@ -84,6 +91,7 @@ static inline double EvaluateSolution(const Solution &s)
     counter++;
   }
   return tot;
+#endif
 }
 
 static inline bool ExpProb(double dc, double T)

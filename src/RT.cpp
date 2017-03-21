@@ -6,6 +6,24 @@
 
 using namespace std;
 
+int64_t min_slack()
+{
+  int64_t min_slack = INT64_MAX;
+
+  try {
+    for (unsigned int i=0; i<CPU_NUM; ++i) {
+      int64_t min_slack_core = ADRT(CPU[i]);
+
+      if (min_slack_core < min_slack)
+        min_slack = min_slack_core;
+    }
+  } catch (string e) {
+    cerr << e << endl;
+  }
+
+  return min_slack;
+}
+
 static inline uint64_t Ii(const Task &k, uint64_t t)
 {
   uint64_t result = 0;
