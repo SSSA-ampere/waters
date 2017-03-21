@@ -223,8 +223,8 @@ double inline computeInterf(unsigned int run_id)
 
 }
 
-int loc_to_id(uint8_t b) {
-
+int loc_to_id(uint8_t b)
+{
 	int counter = 0;
 	while (b != 0) {
 		counter += b & 1;
@@ -233,8 +233,8 @@ int loc_to_id(uint8_t b) {
 	return counter - 1;
 }
 
-int one_counter(uint8_t b) {
-
+int one_counter(uint8_t b)
+{
 	int counter = 0;
 	while (b != 0) {
 		counter += b & 1;

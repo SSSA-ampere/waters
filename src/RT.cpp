@@ -44,7 +44,6 @@ static inline uint64_t Ii(const Task &k, uint64_t t)
   return result;
 }
 
-//TODO
 uint64_t Ri1(const Task &k)
 {
   uint64_t R, R_old;
@@ -68,7 +67,6 @@ double Utilization(const vector<Task> &CPU)
   return r;
 }
 
-//TODO
 int64_t ADRT(vector<Task> &tasks)
 {
   double utilization = Utilization(tasks);
