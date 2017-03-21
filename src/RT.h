@@ -5,6 +5,6 @@
 #include <vector>
 
 double Utilization(const std::vector<Task> &CPU);
-void ADRT(std::vector<Task> &CPU);
+int64_t ADRT(std::vector<Task> &CPU);
 
 #endif

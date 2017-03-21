@@ -495,6 +495,25 @@ void parse_XMLmodel(void)
   printf("\n\nfine!\n");
 }
 
+int64_t min_slack()
+{
+  int64_t min_slack = INT64_MAX;
+
+  try {
+    for (unsigned int i=0; i<CPU_NUM; ++i) {
+      int64_t min_slack_core = ADRT(CPU[i]);
+
+      if (min_slack_core < min_slack)
+        min_slack = min_slack_core;
+    }
+  } catch (string e) {
+    cerr << e << endl;
+  }
+
+  return min_slack;
+}
+
+
 int main()
 {
   parse_XMLmodel();
@@ -503,13 +522,7 @@ int main()
 
   // Assunzione: priority value alto, priotita` alta
 
-  try {
-    for (unsigned int i=0; i<CPU_NUM; ++i) {
-      ADRT(CPU[i]);
-    }
-  } catch (string e) {
-    cerr << e << endl;
-  }
+  cout << "Minimum slack found: " << min_slack() << endl;
 
   //annealing_test();
 

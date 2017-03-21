@@ -51,9 +51,10 @@ double Utilization(const vector<Task> &CPU)
 }
 
 //TODO
-void ADRT(vector<Task> &tasks)
+int64_t ADRT(vector<Task> &tasks)
 {
   double utilization = Utilization(tasks);
+  int64_t min_slack = INT64_MAX;
 
   cout << "Utilization on CPU: " << utilization << endl;
 
@@ -86,5 +87,12 @@ void ADRT(vector<Task> &tasks)
       } while (r_ij <= j * tasks[i].period);
     }
     tasks[i].response_time = Rij;
+
+    int64_t slack = tasks[i].deadline - tasks[i].response_time;
+
+    if (min_slack > slack)
+      min_slack = slack;
   }
+
+  return min_slack;
 }
