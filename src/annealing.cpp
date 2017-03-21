@@ -41,6 +41,26 @@ static inline double P(double dc, double T)
   return exp(-dc/T);
 }
 
+static inline int one_counter(uint8_t b)
+{
+  register int counter = 0;
+  while (b != 0) {
+    counter += b & 1;
+    b = b >> 1;
+  }
+  return counter;
+}
+
+static inline int loc_to_id(uint8_t b)
+{
+  register int counter = -1;
+  while (b != 0) {
+    ++counter;
+    b = b >> 1;
+  }
+  return counter;
+}
+
 static void printSolution(const Solution &s)
 {
 #if 0
@@ -70,7 +90,7 @@ static inline void ComputeAnySolution(Solution &s)
 
 static inline Solution ComputeNewSolution(const Solution &s)
 {
-  unsigned int noise = s.size() * 0.1;
+  unsigned int noise = s.size() * 0.2;
   unsigned int seed = std::chrono::system_clock::now().time_since_epoch().count();
   std::default_random_engine generator(seed);
   std::uniform_int_distribution<int> dist_label(0, s.size()-1);
@@ -212,27 +232,29 @@ void annealing_test()
 }
 
 
-uint8_t * compute_coremap(vector <Label> labellist) {
-
-	for (Label l : labellist) {
-
-		if ( ~(coremap[loc_to_id(l.ram)] && 1111) )
+void compute_coremap(const vector<Label> &labellist)
+{
+  for (Label const &l : labellist) {
+    if ( ~(coremap[loc_to_id(l.ram)] && 0x0F) )
 			coremap[loc_to_id(l.ram)] |= l.used_by_CPU; // TODO optimize this function
-		}
-	return coremap;
+  }
 }
 
 double inline computeInterf(unsigned int run_id, const std::vector<Label> &L)
 {
   Runnable &r = runnables[run_id];
 	double interf = 0;
+  double local_interf;
+  RAM_LOC l;
+  uint8_t u;
+  int num_label_acc;
 
   for (int i = 0; i < r.labels_r.size(); ++i) { // for all labels read
-    double local_interf = 0;
+    local_interf = 0;
 
-    RAM_LOC l = L[i].ram;
-		uint8_t u = coremap[loc_to_id(l)];
-		int num_label_acc = r.labels_r_access[i];
+    l = L[i].ram;
+    u = coremap[loc_to_id(l)];
+    num_label_acc = r.labels_r_access[i];
 
     local_interf += one_counter(u&(~l)) * 9;
     if (u&l)
@@ -243,10 +265,10 @@ double inline computeInterf(unsigned int run_id, const std::vector<Label> &L)
     interf += local_interf;
 	}
 
-	for (int i = 0; i < r.labels_w.size(); i++) { // for all labels written
+  for (int i = 0; i < r.labels_w.size(); ++i) { // for all labels written
 
-    RAM_LOC l = L[i].ram;
-		uint8_t u = coremap[loc_to_id(l)];
+    l = L[i].ram;
+    u = coremap[loc_to_id(l)];
 
 		interf += one_counter(u&(~l)) * 9;
     if (u&l)
@@ -255,24 +277,4 @@ double inline computeInterf(unsigned int run_id, const std::vector<Label> &L)
 	}
 
   return cycles2us(interf);
-}
-
-int loc_to_id(uint8_t b)
-{
-	int counter = 0;
-	while (b != 0) {
-    ++counter;
-		b = b >> 1;
-		}
-	return counter - 1;
-}
-
-int one_counter(uint8_t b)
-{
-	int counter = 0;
-	while (b != 0) {
-		counter += b & 1;
-		b = b >> 1;
-		}
-	return counter;
 }
