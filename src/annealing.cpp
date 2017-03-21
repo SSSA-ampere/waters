@@ -23,12 +23,19 @@ const unsigned int MAX_I = 1000;
 const int ELEM_MIN = GRAM;
 const int ELEM_MAX = LRAM_3;
 
+const unsigned int MEM_NUM = 5;
+
 /*--------------------------*/
 
 typedef RAM_LOC Element;
 typedef vector<Element> Solution;
 
 /*--------------------------*/
+
+uint8_t coremap[MEM_NUM];
+
+/*-------------------------*/
+
 
 unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
 std::default_random_engine generator(seed);
@@ -170,3 +177,68 @@ void annealing_test()
   cout << "With cost: " << r.second << endl;
 }
 
+
+uint8_t * compute_coremap(vector <Label> labellist) {
+
+	for (Label l : labellist) {
+
+		if ( ~(coremap[loc_to_id(l.ram)] && 1111) )
+			coremap[loc_to_id(l.ram)] |= l.used_by_CPU; // TODO optimize this function
+		}
+	return coremap;
+}
+
+
+
+
+double inline computeInterf(unsigned int run_id) 
+{
+	Runnable r = runnables[run_id];
+	double interf = 0;
+
+	for (int i = 0; i < r.labels_r.size(); i++) { // for all labels read
+
+		uint8_t l = labels[i].ram;
+		uint8_t u = coremap[loc_to_id(l)];
+		int num_label_acc = r.labels_r_access[i];
+
+		interf += one_counter(u&(~l)) * 9;
+		if (u&l) interf++;
+
+		interf = interf * num_label_acc;
+
+	}
+
+	for (int i = 0; i < r.labels_w.size(); i++) { // for all labels written
+
+		uint8_t l = labels[i].ram;
+		uint8_t u = coremap[loc_to_id(l)];
+
+		interf += one_counter(u&(~l)) * 9;
+		if (u&l) interf++;
+		// Remember: only one access per label written
+	}
+
+	return interf;
+
+}
+
+int loc_to_id(uint8_t b) {
+
+	int counter = 0;
+	while (b != 0) {
+		counter += b & 1;
+		b = b >> 1;
+		}
+	return counter - 1;
+}
+
+int one_counter(uint8_t b) {
+
+	int counter = 0;
+	while (b != 0) {
+		counter += b & 1;
+		b = b >> 1;
+		}
+	return counter;
+}

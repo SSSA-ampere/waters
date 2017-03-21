@@ -11,7 +11,7 @@ int64_t min_slack()
   int64_t min_slack = INT64_MAX;
 
   try {
-    for (unsigned int i=0; i<CPU_NUM; ++i) {
+    for (unsigned int i=0; i<4; ++i) {
       int64_t min_slack_core = ADRT(CPU[i]);
 
       if (min_slack_core < min_slack)

@@ -1,19 +1,25 @@
+#ifndef MILPDATA_H__
+#define MILPDATA_H__
+
 #include <vector>
 #include <string>
 #include <stdint.h>
 
 enum RAM_LOC {
-	GRAM,
-	LRAM_0,
-	LRAM_1,
-	LRAM_2,
-	LRAM_3
+	LRAM_0 = 1,
+	LRAM_1 = 2,
+	LRAM_2 = 4,
+	LRAM_3 = 8,
+	GRAM = 16
 };
 
 struct Label {
 	unsigned int id;
 	unsigned int bitLen;
+	std::vector<unsigned int> runnable_users;
+	uint8_t used_by_CPU;
 	RAM_LOC ram;
+
 };
 
 struct RAM {
@@ -26,6 +32,7 @@ struct Runnable { // add bool = response time important (end of task or inchain)
 	std::string name;
 	unsigned int id;
 	unsigned int task_id;
+	unsigned int cpu_id;
   double exec_time_max;
   double exec_time_min;
   double exec_time_mean;
@@ -65,3 +72,5 @@ extern std::vector<Runnable> runnables;
 extern std::vector<Label> labels;
 extern std::vector<Task> CPU[4];
 extern std::vector<Event_Chain> event_chains;
+
+#endif
