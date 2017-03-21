@@ -28,6 +28,10 @@ void copy_in_newstruct(void)
 			to.cpu_id = i;
 			to.period = ti->getPeriod();
 			to.deadline = ti->getDeadline();
+
+      if (to.deadline > max_deadline)
+        max_deadline = to.deadline;
+
 			to.prio = ti->getPriority();
 			to.interarrival_max = ti->getMaxInterArrivalTime();
 			to.interarrival_min = ti->getMinInterArrivalTime();
@@ -67,7 +71,7 @@ void copy_in_newstruct(void)
 
 				runnables.push_back(ro);
 				t->runnables.push_back(ro.id);
-        t->wcet += ro.exec_time_mean;
+        t->wcet += ro.exec_time_min;
 			}
 		}
 	}

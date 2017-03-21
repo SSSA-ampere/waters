@@ -14,5 +14,6 @@ void annealing();
 int one_counter(uint8_t b);
 int loc_to_id(uint8_t b);
 uint8_t * compute_coremap(std::vector <Label> labellist);
+double inline computeInterf(unsigned int run_id, const std::vector<Label> &L);
 
 #endif

@@ -24,13 +24,6 @@ using namespace tinyxml2;
 using namespace std;
 
 
-const uint64_t instructions_per_us = 2e8 / 1e6;
-
-double cycles2us(uint64_t instructions)
-{
-  return instructions / instructions_per_us;
-}
-
 
 #ifndef XMLCheckResult
 #define XMLCheckResult(a_eResult) if (a_eResult != XML_SUCCESS) { printf("Error: %i\n", a_eResult); return; }
@@ -497,6 +490,10 @@ void parse_XMLmodel(void)
 int main()
 {
   parse_XMLmodel();
+
+  for (int i=0; i<4; i++)
+    ram[i].size = ram[i].available = 131072;
+  ram[4].size = ram[4].available = 131072 * 2;
 
   copy_in_newstruct();
 

@@ -6,7 +6,7 @@
 
 using namespace std;
 
-int64_t min_slack()
+int64_t min_slack(const std::vector<Label> &s)
 {
   int64_t min_slack = INT64_MAX;
 
@@ -19,6 +19,7 @@ int64_t min_slack()
     }
   } catch (string e) {
     cerr << e << endl;
+    exit(-1);
   }
 
   return min_slack;
@@ -72,7 +73,7 @@ int64_t ADRT(vector<Task> &tasks)
   double utilization = Utilization(tasks);
   int64_t min_slack = INT64_MAX;
 
-  cout << "Utilization on CPU: " << utilization << endl;
+  //cout << "Utilization on CPU: " << utilization << endl;
 
   if (utilization >= 1)
     throw(std::string("utilization >= 1. Interference cannot converge, EXITING."));

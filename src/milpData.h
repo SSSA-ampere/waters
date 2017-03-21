@@ -5,6 +5,8 @@
 #include <string>
 #include <stdint.h>
 
+const uint64_t instructions_per_us = 2e8 / 1e6;
+
 enum RAM_LOC {
 	LRAM_0 = 1,
 	LRAM_1 = 2,
@@ -23,7 +25,8 @@ struct Label {
 };
 
 struct RAM {
-	unsigned int size; // in bytes
+  int64_t size; // in bytes
+  int64_t available;
 	std::vector<unsigned int> labels;
 };
 
@@ -59,12 +62,12 @@ struct Task { // TODO inserire periodico o ISR
 
 struct Event_Chain {
 
-	std::string name;
-	unsigned int id;
-	std::vector<unsigned int> runnables_stimulus;
-	std::vector<unsigned int> runnables_response;
-	std::vector<unsigned int> labels;
-	std::vector<unsigned int> runnables_chain;
+  std::string name;
+  unsigned int id;
+  std::vector<unsigned int> runnables_stimulus;
+  std::vector<unsigned int> runnables_response;
+  std::vector<unsigned int> labels;
+  std::vector<unsigned int> runnables_chain;
 
 };
 
@@ -72,5 +75,9 @@ extern std::vector<Runnable> runnables;
 extern std::vector<Label> labels;
 extern std::vector<Task> CPU[4];
 extern std::vector<Event_Chain> event_chains;
+extern RAM ram[5];
+extern uint64_t max_deadline;
+
+double cycles2us(uint64_t instructions);
 
 #endif

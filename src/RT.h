@@ -6,6 +6,6 @@
 
 double Utilization(const std::vector<Task> &CPU);
 int64_t ADRT(std::vector<Task> &CPU);
-int64_t min_slack();
+int64_t min_slack(const std::vector<Label> &s);
 
 #endif
