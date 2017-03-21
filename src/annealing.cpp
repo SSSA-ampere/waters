@@ -22,12 +22,19 @@ const unsigned int MAX_I = 1000;
 const int ELEM_MIN = GRAM;
 const int ELEM_MAX = LRAM_3;
 
+const unsigned int MEM_NUM = 5;
+
 /*--------------------------*/
 
 typedef RAM_LOC Element;
 typedef vector<Element> Solution;
 
 /*--------------------------*/
+
+uint8_t coremap[MEM_NUM];
+
+/*-------------------------*/
+
 
 unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
 std::default_random_engine generator(seed);
@@ -163,37 +170,52 @@ void annealing_test()
 }
 
 
+uint8_t * compute_coremap(vector <Label> labellist) {
 
-double inline computeWCET(unsigned int run_id) 
-{
-	Runnable r = runnables[run_id];
-	double interf = 0;
-	int i = 0;
-	int CC;
+	for (Label l : labellist) {
 
-	for (int l_id : r.labels_r) { // for all labels read TODO add labels written
-
-		Label l = labels[l_id];
-		uint8_t usedby = l.used_by_CPU;
-		int label_acc = r.labels_r_access[i];
-
-		if (r.cpu_id == convert_ram_loc_to_id(l.ram))
-			CC = 1;
-		else CC = 9;
-
-		interf += label_acc*(CC + cores_counter(usedby)*9); // TODO specificare latency diversa per runnables che hanno label locale
-		
-		i++;
-
-	}
-
-	double WCET = r.exec_time_max + interf;
-
-
+		if ( ~(coremap[loc_to_id(l.ram)] && 1111) )
+			coremap[loc_to_id(l.ram)] |= l.used_by_CPU; // TODO optimize this function
+		}
+	return coremap;
 }
 
 
-int cores_counter(uint8_t b) {
+
+
+double inline computeInterf(unsigned int run_id) 
+{
+	Runnable r = runnables[run_id];
+	double interf = 0;
+
+	for (int i = 0; i < r.labels_r.size(); i++) { // for all labels read
+
+		uint8_t l = labels[i].ram;
+		uint8_t u = coremap[loc_to_id(l)];
+		int num_label_acc = r.labels_r_access[i];
+
+		interf += one_counter(u&(~l)) * 9;
+		if (u&l) interf++;
+
+		interf = interf * num_label_acc;
+
+	}
+
+	for (int i = 0; i < r.labels_w.size(); i++) { // for all labels written
+
+		uint8_t l = labels[i].ram;
+		uint8_t u = coremap[loc_to_id(l)];
+
+		interf += one_counter(u&(~l)) * 9;
+		if (u&l) interf++;
+		// Remember: only one access per label written
+	}
+
+	return interf;
+
+}
+
+int loc_to_id(uint8_t b) {
 
 	int counter = 0;
 	while (b != 0) {
@@ -203,11 +225,12 @@ int cores_counter(uint8_t b) {
 	return counter - 1;
 }
 
-int convert_ram_loc_to_id(RAM_LOC r) {
+int one_counter(uint8_t b) {
 
-	if (r == GRAM) return 0;
-	if (r == LRAM_0) return 1;
-	if (r == LRAM_1) return 2;
-	if (r == LRAM_2) return 3;
-	if (r == LRAM_3) return 4;
+	int counter = 0;
+	while (b != 0) {
+		counter += b & 1;
+		b = b >> 1;
+		}
+	return counter;
 }

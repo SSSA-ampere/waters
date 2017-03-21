@@ -1,3 +1,6 @@
+#ifndef COPY_IN_NEW_STRUCT__
+#define COPY_IN_NEW_STRUCT__
+
 #include <vector>
 
 #include "Task2.h"
@@ -15,3 +18,5 @@ template<class T>
 void deleter(T &v);
 
 void copy_in_newstruct(void);
+
+#endif

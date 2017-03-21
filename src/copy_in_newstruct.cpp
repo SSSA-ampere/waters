@@ -20,7 +20,6 @@ void copy_in_newstruct(void)
 
 	for (int i = 0; i < 4; i++) {
 
-
 		for (Task2 * ti : CPU_CORES[i]) {
 			Task to;
 

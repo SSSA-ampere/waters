@@ -1,13 +1,16 @@
+#ifndef MILPDATA_H__
+#define MILPDATA_H__
+
 #include <vector>
 #include <string>
 #include <stdint.h>
 
 enum RAM_LOC {
-	GRAM,
 	LRAM_0 = 1,
 	LRAM_1 = 2,
 	LRAM_2 = 4,
-	LRAM_3 = 8
+	LRAM_3 = 8,
+	GRAM = 16
 };
 
 struct Label {
@@ -16,6 +19,7 @@ struct Label {
 	std::vector<unsigned int> runnable_users;
 	uint8_t used_by_CPU;
 	RAM_LOC ram;
+
 };
 
 struct RAM {
@@ -66,3 +70,5 @@ extern std::vector<Runnable> runnables;
 extern std::vector<Label> labels;
 extern std::vector<Task> CPU[4];
 extern std::vector<Event_Chain> event_chains;
+
+#endif
