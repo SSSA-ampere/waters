@@ -75,7 +75,7 @@ string firstToken(const char *str, const char *delim)
 }
 
 
-string FirsToken_AfterStr(const string &str, char *delim, char *AfterStr)
+string FirsToken_AfterStr(const string &str, const char *delim, const char *AfterStr)
 {
     string tmp = firstToken(str.c_str(), delim);
     return tmp.substr(tmp.find(AfterStr)+1);

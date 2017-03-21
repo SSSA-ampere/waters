@@ -16,9 +16,8 @@ double MAX_T;
 const double MIN_T = 0.001;
 const double COOLING_FACTOR = 0.98;
 
-const unsigned int MAX_E = 1000;
-const unsigned int MAX_I = 1000;
-
+const unsigned int MAX_E = 100000;
+const unsigned int MAX_I = 10000;
 
 const int ELEM_MIN = GRAM;
 const int ELEM_MAX = LRAM_3;
@@ -61,6 +60,53 @@ static inline int loc_to_id(uint8_t b)
   return counter;
 }
 
+static inline void compute_coremap(const vector<Label> &labellist)
+{
+  for (Label const &l : labellist) {
+    if ( ~(coremap[loc_to_id(l.ram)] && 0x0F) )
+      coremap[loc_to_id(l.ram)] |= l.used_by_CPU; // TODO optimize this function
+  }
+}
+
+static inline double computeInterf(unsigned int run_id, const std::vector<Label> &L)
+{
+  Runnable &r = runnables[run_id];
+  double interf = 0;
+  double local_interf;
+  RAM_LOC l;
+  uint8_t u;
+  int num_label_acc;
+
+  for (int i = 0; i < r.labels_r.size(); ++i) { // for all labels read
+    local_interf = 0;
+
+    l = L[i].ram;
+    u = coremap[loc_to_id(l)];
+    num_label_acc = r.labels_r_access[i];
+
+    local_interf += one_counter(u&(~l)) * 9;
+    if (u&l)
+      local_interf += 1.0;
+
+    local_interf *= num_label_acc;
+
+    interf += local_interf;
+  }
+
+  for (int i = 0; i < r.labels_w.size(); ++i) { // for all labels written
+
+    l = L[i].ram;
+    u = coremap[loc_to_id(l)];
+
+    interf += one_counter(u&(~l)) * 9;
+    if (u&l)
+      interf += 1.0;
+    // Remember: only one access per label written
+  }
+
+  return cycles2us(interf);
+}
+
 static void printSolution(const Solution &s)
 {
 #if 0
@@ -88,15 +134,18 @@ static inline void ComputeAnySolution(Solution &s)
   }
 }
 
-static inline Solution ComputeNewSolution(const Solution &s)
+static inline Solution ComputeNewSolutionHeavy(const Solution &s)
 {
-  unsigned int noise = s.size() * 0.2;
+  unsigned int noise;
   unsigned int seed = std::chrono::system_clock::now().time_since_epoch().count();
   std::default_random_engine generator(seed);
   std::uniform_int_distribution<int> dist_label(0, s.size()-1);
   std::uniform_int_distribution<int> dist_ram(0, 4);
+  std::uniform_int_distribution<int> dist_noise(1, 10);
   Solution newSol(s);
   unsigned int l, p;
+
+  noise = dist_noise(generator);
 
   for (unsigned int i=0; i<noise; ++i) {
     l = dist_label(generator);
@@ -106,6 +155,40 @@ static inline Solution ComputeNewSolution(const Solution &s)
       p = dist_ram(generator);
       res = ram[p].available - newSol[l].bitLen;
     } while (res < 0);
+
+    ram[loc_to_id(newSol[l].ram)].available += newSol[l].bitLen;
+    ram[p].available -= newSol[l].bitLen;
+    newSol[l].ram = static_cast<RAM_LOC>(1 << p);
+  }
+
+  return newSol;
+}
+
+static inline Solution ComputeNewSolutionLight(const Solution &s)
+{
+  unsigned int noise;
+  unsigned int seed = std::chrono::system_clock::now().time_since_epoch().count();
+  std::default_random_engine generator(seed);
+  std::uniform_int_distribution<int> dist_label(0, s.size()-1);
+  std::uniform_int_distribution<int> dist_ram(0, 3);
+  std::uniform_int_distribution<int> dist_noise(1, 3);
+  Solution newSol(s);
+  unsigned int l, p;
+
+  noise = dist_noise(generator);
+
+  for (unsigned int i=0; i<noise; ++i) {
+    l = dist_label(generator);
+
+    if (newSol[l].ram & GRAM) {
+      int64_t res;
+      do {
+        p = dist_ram(generator);
+        res = ram[p].available - newSol[l].bitLen;
+      } while (res < 0);
+    } else {
+      p = 4;
+    }
 
     ram[loc_to_id(newSol[l].ram)].available += newSol[l].bitLen;
     ram[p].available -= newSol[l].bitLen;
@@ -157,8 +240,17 @@ static inline bool ExpProb(double dc, double T)
   return V < P(dc, T);
 }
 
+template<class T>
+inline void new_optimal_solution_found(const T &v)
+{
+  cout << "------) Optimal solution: " << v << endl;
+}
+
 std::pair<Solution, double> annealing()
 {
+  unsigned int seed = std::chrono::system_clock::now().time_since_epoch().count();
+  std::default_random_engine generator(seed);
+  std::uniform_int_distribution<int> dist_eval(0, 10);
   Solution s, s_new, s_opt;
   double   c, c_new, c_opt;
   unsigned int max_I, max_E;
@@ -172,7 +264,7 @@ std::pair<Solution, double> annealing()
   s_opt = s;
   c_opt = EvaluateSolution(s);
 
-  cout << "Optimal solution: " << c_opt << endl;
+  new_optimal_solution_found(c_opt);
 
   for (double T=MAX_T; T>MIN_T; T=T*COOLING_FACTOR) {
     cout << "Temperature: " << T << endl;
@@ -182,7 +274,10 @@ std::pair<Solution, double> annealing()
 
     while (max_I < MAX_I && max_E < MAX_E) {
 
-      s_new = ComputeNewSolution(s);
+      if (dist_eval(generator) < 2)
+        s_new = ComputeNewSolutionHeavy(s);
+      else
+        s_new = ComputeNewSolutionLight(s);
       c_new = EvaluateSolution(s_new);
 
       double dc = c_new - c;
@@ -197,7 +292,7 @@ std::pair<Solution, double> annealing()
         if (c < c_opt) {
           s_opt = s;
           c_opt = c;
-          cout << "Optimal solution: " << c_opt << endl;
+          new_optimal_solution_found(c_opt);
         }
 
         max_I++;
@@ -220,61 +315,13 @@ std::pair<Solution, double> annealing()
   return std::make_pair(s_opt, c_opt);
 }
 
-void annealing_test()
+void annealing_run()
 {
   MAX_T = max_deadline;
-  cout << "Performing annealing test" << endl;
+  cout << "Performing simulated annealing" << endl;
   auto r = annealing();
   cout << "Done" << endl;
-  cout << "Found solution" << endl;
+  cout << "Best solution found" << endl;
   printSolution(r.first);
-  cout << "With cost: " << r.second << endl;
-}
-
-
-void compute_coremap(const vector<Label> &labellist)
-{
-  for (Label const &l : labellist) {
-    if ( ~(coremap[loc_to_id(l.ram)] && 0x0F) )
-			coremap[loc_to_id(l.ram)] |= l.used_by_CPU; // TODO optimize this function
-  }
-}
-
-double inline computeInterf(unsigned int run_id, const std::vector<Label> &L)
-{
-  Runnable &r = runnables[run_id];
-	double interf = 0;
-  double local_interf;
-  RAM_LOC l;
-  uint8_t u;
-  int num_label_acc;
-
-  for (int i = 0; i < r.labels_r.size(); ++i) { // for all labels read
-    local_interf = 0;
-
-    l = L[i].ram;
-    u = coremap[loc_to_id(l)];
-    num_label_acc = r.labels_r_access[i];
-
-    local_interf += one_counter(u&(~l)) * 9;
-    if (u&l)
-      local_interf += 1.0;
-
-    local_interf *= num_label_acc;
-
-    interf += local_interf;
-	}
-
-  for (int i = 0; i < r.labels_w.size(); ++i) { // for all labels written
-
-    l = L[i].ram;
-    u = coremap[loc_to_id(l)];
-
-		interf += one_counter(u&(~l)) * 9;
-    if (u&l)
-      interf += 1.0;
-		// Remember: only one access per label written
-	}
-
-  return cycles2us(interf);
+  cout << "With value: " << r.second << endl;
 }

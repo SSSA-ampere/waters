@@ -26,7 +26,7 @@ using namespace std;
 
 
 #ifndef XMLCheckResult
-#define XMLCheckResult(a_eResult) if (a_eResult != XML_SUCCESS) { printf("Error: %i\n", a_eResult); return; }
+#define XMLCheckResult(a_eResult) if (a_eResult != XML_SUCCESS) { cerr << "Error: " << a_eResult << endl; return; }
 #endif
 
 
@@ -49,7 +49,7 @@ vector<EventChains2 *> eventChains;
 
 
 
-int countSiblingElements(XMLElement *pElement, char *elem_name)
+int countSiblingElements(XMLElement *pElement, const char *elem_name)
 {
   int i = 0;
   while (pElement != nullptr)
@@ -62,7 +62,7 @@ int countSiblingElements(XMLElement *pElement, char *elem_name)
 }
 
 
-int countSiblingElements(XMLElement *pElement, char *elem_name, char *attr, char *value)
+int countSiblingElements(XMLElement *pElement, const char *elem_name, const char *attr, const char *value)
 {
   int i = 0;
   while (pElement != nullptr)
@@ -87,14 +87,14 @@ void parse_XMLmodel(void)
   XMLNode *pRoot = xmlDoc.FirstChild();
   if (pRoot == nullptr)
   {
-    printf("pRoot == nullptr!\n");
+    cout << "pRoot == nullptr!" << endl;
     return;
   }
 
   XMLElement *pElement = pRoot->FirstChildElement("swModel");
   if (pElement == nullptr)
   {
-    printf("swModel not found\n");
+    cout << "swModel not found" << endl;
     return;
   }
 
@@ -105,7 +105,7 @@ void parse_XMLmodel(void)
   // read all labels
 
   int g_label_count = countSiblingElements(pLabelElement_first, "labels");
-  printf("g_label_count = %d\n", g_label_count);
+  cout << "g_label_count = " << g_label_count << endl;
   labelList.reserve(g_label_count);
 
   XMLElement *pLabelElement = pLabelElement_first;
@@ -138,14 +138,14 @@ void parse_XMLmodel(void)
     if(lpos != label_id)
     {
       //should never happens
-      printf("lpos != label_id , quit\n");
+      cout << "lpos != label_id , quit" << endl;
       return;
     }
 
     pLabelElement = pLabelElement->NextSiblingElement("labels");
   }
 
-  printf("Labels extracted\n");
+  cout << "Labels extracted" << endl;
 
 
 
@@ -157,17 +157,19 @@ void parse_XMLmodel(void)
     const char *task_preemption = pTaskElement->Attribute("preemption");
     const char *task_mTActLimit = pTaskElement->Attribute("multipleTaskActivationLimit");
 
-    printf("name=%s priority=%s stimuli=%s\n", task_name, task_priority, task_stimuli);
+    cout << "name = " << task_name << " priority = " << task_priority << " stimuli = " << task_stimuli << endl;
 
     vector<string> tmp_tokens;
     Tokenize(string(task_stimuli), tmp_tokens, string("_"));
 
     if(tmp_tokens.size() < 3)
-      printf("0=%s 1=%s\n", tmp_tokens[0].c_str(), tmp_tokens[1].c_str());
+      cout << "0 = " << tmp_tokens[0] << " "
+           << "1 = " << tmp_tokens[1] << endl;
     else
-      printf("0=%s 1=%s 2=%s 3=%s\n", tmp_tokens[0].c_str(), tmp_tokens[1].c_str(), tmp_tokens[2].c_str(), tmp_tokens[3].c_str() );
-
-
+      cout << "0 = " << tmp_tokens[0] << " "
+           << "1 = " << tmp_tokens[1] << " "
+           << "2 = " << tmp_tokens[2] << " "
+           << "3 = " << tmp_tokens[3] << " " << endl;
 
     Task2 *task = new Task2();
 
@@ -190,7 +192,7 @@ void parse_XMLmodel(void)
     }
     else
     {
-      printf("tmp_token[0] == %s, quit!\n", tmp_tokens[0].c_str());
+      cout << "tmp_token[0] == " << tmp_tokens[0] << ", quit!" << endl;
       return;
     }
 
@@ -206,7 +208,7 @@ void parse_XMLmodel(void)
     }
     else
     {
-      printf("task_preemption == %s, quit!\n", task_preemption);
+      cout << "task_preemption == " << task_preemption << ", quit!" << endl;
       return;
     }
 
@@ -217,7 +219,7 @@ void parse_XMLmodel(void)
     XMLElement *pCallsElement_first = pTaskElement->FirstChildElement()->FirstChildElement()->FirstChildElement();
     XMLElement *pCallsElement = pCallsElement_first;
     int runnables_count = countSiblingElements(pCallsElement, nullptr); //"calls"
-    printf("runnables_count = %d\n", runnables_count);
+    cout << "runnables_count = " << runnables_count << endl;
 
 
 
@@ -249,7 +251,7 @@ void parse_XMLmodel(void)
 
         if(runnable_name == g_runnable_name)
         {
-          printf("runnable %s found!!!\n", runnable_name.c_str());
+          cout << "runnable " << runnable_name << " found!!!" << endl;
 
           //scorri tutti i runnableItem (gli accessi alle label)
           XMLElement *prunnableItemsElement = pRunnableElement->FirstChildElement();
@@ -289,7 +291,7 @@ void parse_XMLmodel(void)
                 labelList[label_id]->runnablesWrite_list.push_back(runnable);
               }
 
-              printf("\t%s %d %s\n", label_name.c_str(),label_id, access.c_str());
+              cout << "\t" << label_name << " " << label_id << " " << access << endl;
             }
             else // RunnableInstruction
             {
@@ -297,7 +299,7 @@ void parse_XMLmodel(void)
               XMLElement *pdeviationElement = prunnableItemsElement->FirstChildElement()->FirstChildElement("deviation");
               if(pdeviationElement == nullptr)
               {
-                printf("pdeviationElement == nullptr\n");
+                cout << "pdeviationElement == nullptr" << endl;
                 return;
               }
 
@@ -308,7 +310,7 @@ void parse_XMLmodel(void)
 
               runnable->setDistribParams(cycles2us(lowerBound), cycles2us(upperBound), pRemainPromille, cycles2us(mean));
 
-              printf("\t lowerBound=%d upperBound=%d pRemainPromille=%s mean=%d\n", lowerBound, upperBound, pRemainPromille.c_str(), mean);
+              cout << "\tlowerBound = " << lowerBound << " upperBound = " << upperBound << " pRemainPromille = " << pRemainPromille << " mean = " << mean << endl;
             }
             prunnableItemsElement = prunnableItemsElement->NextSiblingElement("runnableItems");
           }
@@ -322,10 +324,10 @@ void parse_XMLmodel(void)
         g_runnables_count++;
         pRunnableElement = pRunnableElement->NextSiblingElement("runnables");
       }
-      printf("g_runnables_count = %d\n", g_runnables_count);
+      cout << "g_runnables_count = " << g_runnables_count << endl;
       if(!name_found)
       {
-        printf("runnable_name %s NOT  found! quit.\n", runnable_name.c_str());
+        cout << "runnable_name " << runnable_name << " NOT  found! quit." << endl;
         return;
       }
 
@@ -339,7 +341,6 @@ void parse_XMLmodel(void)
       pCallsElement = pCallsElement->NextSiblingElement();
     }
 
-    printf("\n");
     taskList.push_back(task);
     taskName_taskP[task->getName()] = task;
     pTaskElement = pTaskElement->NextSiblingElement("tasks");
@@ -353,14 +354,14 @@ void parse_XMLmodel(void)
   XMLElement *pmappingModelElement = pRoot->FirstChildElement("mappingModel");
   if (pmappingModelElement == nullptr)
   {
-    printf("mappingModel\n");
+    cout << "mappingModel" << endl;
     return;
   }
 
   XMLElement *taskAllocationElement_first = pmappingModelElement->FirstChildElement("taskAllocation");
   if (taskAllocationElement_first == nullptr)
   {
-    printf("task allocation not found\n");
+    cout << "task allocation not found" << endl;
     return;
   }
 
@@ -370,15 +371,13 @@ void parse_XMLmodel(void)
     string task_name = firstToken(taskAllocationElement->Attribute("task"), "?");
     int cpu_core_n = atoi(&NthToken(taskAllocationElement->Attribute("scheduler"), "_", 1)[4]);
 
-    printf("%s->\tCPU_CORE[%d]\n", task_name.c_str(), cpu_core_n);
+    cout << task_name << "\t->\tCPU_CORE[ " << cpu_core_n << " ]" << endl;
 
     //task_name a task_pointer
     CPU_CORES[cpu_core_n].push_back(taskName_taskP[task_name]);
 
     taskAllocationElement = taskAllocationElement->NextSiblingElement("taskAllocation");
   }
-
-  printf("\n");
 
   //
   //event_chain mapping
@@ -387,7 +386,7 @@ void parse_XMLmodel(void)
   XMLElement *pconstraintsModelElement = pRoot->FirstChildElement("constraintsModel");
   if (pconstraintsModelElement == nullptr)
   {
-    printf("constraintsModel\n");
+    cout << "constraintsModel" << endl;
     return;
   }
 
@@ -401,7 +400,7 @@ void parse_XMLmodel(void)
     string runnable_stimulus_name = FirsToken_AfterStr(stimulus, "?", "_");
     string runnable_response_name = FirsToken_AfterStr(response, "?", "_");
 
-    printf("eventChain=%s stimulus=%s  response=%s\n", evtc_name, runnable_stimulus_name.c_str(), runnable_response_name.c_str());
+    cout << "eventChain = " << evtc_name << " stimulus = " << runnable_stimulus_name << " response = " << runnable_response_name << endl;
 
     EventChains2 *evtc = new EventChains2();
     evtc->runnable_stimulus = runnableName_runnableP[runnable_stimulus_name];
@@ -428,7 +427,7 @@ void parse_XMLmodel(void)
       label_wr_id = atoi(NthToken(label_wr, "_", 2).c_str());
       evtc_elem->label_wr = labelList[label_wr_id];
 
-      printf("\tWR_Label_%d stimulus=%s response=%s\n", label_wr_id, evtc_elem->runnable_stimulus->getName().c_str(), evtc_elem->runnable_response->getName().c_str());
+      cout << "\tWR_Label_" << label_wr_id << " stimulus = " << evtc_elem->runnable_stimulus->getName() << " response = " << evtc_elem->runnable_response->getName() << endl;
       evtc->eventChains_elems.push_back(evtc_elem);
       psegmentElement = psegmentElement->NextSiblingElement("segments");
 
@@ -458,7 +457,7 @@ void parse_XMLmodel(void)
   XMLElement *prequirementsElement_first = pconstraintsModelElement->FirstChildElement("requirements");
   if (prequirementsElement_first == nullptr)
   {
-    printf("requirements not found\n");
+    cout << "requirements not found" << endl;
     return;
   }
 
@@ -478,13 +477,16 @@ void parse_XMLmodel(void)
     else deadline = static_cast<int64_t>(req_limit);
 
 
-    printf("deadline of task %s = %llu \n", &task_name, deadline);
+    cout << "deadline of task " << task_name << " = " << deadline << endl;
 
     taskName_taskP[task_name]->setDeadline(req_limit); // set deadline of relative task
 
     prequirementsElement = prequirementsElement->NextSiblingElement("requirements");
   }
-  printf("\n\nfine!\n");
+
+  cout << "Done loading Amalthea model" << endl;
+  cout << "- / - / - / - / - / - / - / - /" << endl;
+
 }
 
 int main()
@@ -498,7 +500,7 @@ int main()
   copy_in_newstruct();
 
   // Assunzione: priority value alto, priotita` alta
-  annealing_test();
+  annealing_run();
 
   fflush(stdout);
 
