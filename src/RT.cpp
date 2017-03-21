@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <cassert>
 
 using namespace std;
 
@@ -39,7 +40,7 @@ uint64_t Ri1(const Task &k)
   return R;
 }
 
-static inline double U(const vector<Task> &CPU)
+double Utilization(const vector<Task> &CPU)
 {
   double r = 0.0;
 
@@ -52,18 +53,38 @@ static inline double U(const vector<Task> &CPU)
 //TODO
 void ADRT(vector<Task> &tasks)
 {
-  double utilization = U(tasks);
+  double utilization = Utilization(tasks);
 
   cout << "Utilization on CPU: " << utilization << endl;
 
-  if (utilization >= 1) {
-    cerr << "Utilization must be smaller than 1." << endl;
-    cerr << "Interference cannot converge, EXITING." << endl;
-    exit(-1);
-  }
+  if (utilization >= 1)
+    throw(std::string("utilization >= 1. Interference cannot converge, EXITING."));
 
   for (unsigned int i=0; i<tasks.size(); ++i) {
-    tasks.at(i).response_time = Ri1(tasks[i]);
+    uint64_t r_i1, r_ij, r_ij_1, r_ij_old;
+    uint64_t Rij;
+
+    r_i1 = Ri1(tasks[i]);
+
+    if (r_i1 <= tasks[i].period) {
+      Rij = r_i1;
+    } else {
+      cerr << "Not sure about the correctness" << endl;
+      unsigned int j=1;
+
+      r_ij_1 = r_i1;
+      do {
+        j++;
+        r_ij = r_ij_1 + tasks[i].wcet;
+
+        do {
+          r_ij_old = r_ij;
+          r_ij = j * tasks[i].wcet + Ii(tasks[i], r_ij);
+        } while (r_ij != r_ij_old);
+
+        Rij = r_ij - (j - 1) * tasks[i].period;
+      } while (r_ij <= j * tasks[i].period);
+    }
+    tasks[i].response_time = Rij;
   }
-    //Rij = rij - (j - 1) * t.period;
 }

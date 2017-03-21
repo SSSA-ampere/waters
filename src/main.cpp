@@ -17,6 +17,7 @@
 
 #include <vector>
 #include <map>
+#include <iostream>
 
 const unsigned int CPU_NUM = 4;
 
@@ -144,7 +145,7 @@ void parse_XMLmodel(void)
 
     if(lpos != label_id)
     {
-            //should never happens
+      //should never happens
       printf("lpos != label_id , quit\n");
       return;
     }
@@ -281,8 +282,8 @@ void parse_XMLmodel(void)
               if(access == "read") //read
               {
 
-        int num_access = prunnableItemsElement->FirstChildElement()->FirstChildElement()->IntAttribute("value");
-        runnable->insertReadLabel_num_acess(num_access);
+                int num_access = prunnableItemsElement->FirstChildElement()->FirstChildElement()->IntAttribute("value");
+                runnable->insertReadLabel_num_acess(num_access);
                 runnable->insertReadLabel(label_id);
                 labelList[label_id]->runnablesRead_list.push_back(runnable);
 
@@ -292,7 +293,7 @@ void parse_XMLmodel(void)
               else //write
               {
                 runnable->insertWriteLabel(label_id);
-        runnable->insertWriteLabel_num_acess(1); // default 1 access
+                runnable->insertWriteLabel_num_acess(1); // default 1 access
                 labelList[label_id]->runnablesWrite_list.push_back(runnable);
               }
 
@@ -382,80 +383,80 @@ void parse_XMLmodel(void)
     //task_name a task_pointer
     CPU_CORES[cpu_core_n].push_back(taskName_taskP[task_name]);
 
-  taskAllocationElement = taskAllocationElement->NextSiblingElement("taskAllocation");
+    taskAllocationElement = taskAllocationElement->NextSiblingElement("taskAllocation");
   }
 
-    printf("\n");
+  printf("\n");
 
-    //
-    //event_chain mapping
-    //
+  //
+  //event_chain mapping
+  //
 
-    XMLElement *pconstraintsModelElement = pRoot->FirstChildElement("constraintsModel");
-    if (pconstraintsModelElement == nullptr)
+  XMLElement *pconstraintsModelElement = pRoot->FirstChildElement("constraintsModel");
+  if (pconstraintsModelElement == nullptr)
+  {
+    printf("constraintsModel\n");
+    return;
+  }
+
+  XMLElement *peventChainsElement_first = pconstraintsModelElement->FirstChildElement("eventChains");
+  XMLElement *peventChainsElement = peventChainsElement_first;
+  while(peventChainsElement != nullptr)
+  {
+    const char *stimulus = peventChainsElement->Attribute("stimulus");
+    const char *response = peventChainsElement->Attribute("response");
+    const char *evtc_name = peventChainsElement->Attribute("name");
+    string runnable_stimulus_name = FirsToken_AfterStr(stimulus, "?", "_");
+    string runnable_response_name = FirsToken_AfterStr(response, "?", "_");
+
+    printf("eventChain=%s stimulus=%s  response=%s\n", evtc_name, runnable_stimulus_name.c_str(), runnable_response_name.c_str());
+
+    EventChains2 *evtc = new EventChains2();
+    evtc->runnable_stimulus = runnableName_runnableP[runnable_stimulus_name];
+    evtc->runnable_response = runnableName_runnableP[runnable_response_name];
+    evtc->name = evtc_name;
+
+
+    int label_wr_id;
+    //bool label_firstinchain = true;
+    XMLElement *psegmentElement = peventChainsElement->FirstChildElement("segments");
+    while(psegmentElement != nullptr)
     {
-        printf("constraintsModel\n");
-        return;
+      //notice that this peventChainElement doesn't have the S ! (is chain, not chainS)
+      XMLElement *peventChainElement = psegmentElement->FirstChildElement("eventChain");
+
+      const char *stimulus = peventChainElement->Attribute("stimulus");
+      const char *response = peventChainElement->Attribute("response");
+      const char *label_wr = peventChainElement->Attribute("name");
+
+      EventChains2_elem *evtc_elem = new EventChains2_elem();
+      evtc_elem->runnable_stimulus = runnableName_runnableP[FirsToken_AfterStr(stimulus, "?", "_")];
+      evtc_elem->runnable_response = runnableName_runnableP[FirsToken_AfterStr(response, "?", "_")];
+
+      label_wr_id = atoi(NthToken(label_wr, "_", 2).c_str());
+      evtc_elem->label_wr = labelList[label_wr_id];
+
+      printf("\tWR_Label_%d stimulus=%s response=%s\n", label_wr_id, evtc_elem->runnable_stimulus->getName().c_str(), evtc_elem->runnable_response->getName().c_str());
+      evtc->eventChains_elems.push_back(evtc_elem);
+      psegmentElement = psegmentElement->NextSiblingElement("segments");
+
+      evtc_elem->runnable_stimulus->addChain(evtc);
+      evtc_elem->runnable_response->addChain(evtc);
+
+      //evtc_elem->label_wr->setInChain(true);
+
+      //if (label_firstinchain)
+      //{
+      //evtc_elem->label_wr->setFirstInChain(true);
+      //label_firstinchain = false;
+      //}
     }
 
-    XMLElement *peventChainsElement_first = pconstraintsModelElement->FirstChildElement("eventChains");
-    XMLElement *peventChainsElement = peventChainsElement_first;
-    while(peventChainsElement != nullptr)
-    {
-        const char *stimulus = peventChainsElement->Attribute("stimulus");
-        const char *response = peventChainsElement->Attribute("response");
-        const char *evtc_name = peventChainsElement->Attribute("name");
-        string runnable_stimulus_name = FirsToken_AfterStr(stimulus, "?", "_");
-        string runnable_response_name = FirsToken_AfterStr(response, "?", "_");
+    //labelList[label_wr_id]->setLastInChain(true);
 
-        printf("eventChain=%s stimulus=%s  response=%s\n", evtc_name, runnable_stimulus_name.c_str(), runnable_response_name.c_str());
-
-        EventChains2 *evtc = new EventChains2();
-        evtc->runnable_stimulus = runnableName_runnableP[runnable_stimulus_name];
-        evtc->runnable_response = runnableName_runnableP[runnable_response_name];
-        evtc->name = evtc_name;
-
-
-        int label_wr_id;
-        //bool label_firstinchain = true;
-        XMLElement *psegmentElement = peventChainsElement->FirstChildElement("segments");
-        while(psegmentElement != nullptr)
-        {
-            //notice that this peventChainElement doesn't have the S ! (is chain, not chainS)
-            XMLElement *peventChainElement = psegmentElement->FirstChildElement("eventChain");
-
-            const char *stimulus = peventChainElement->Attribute("stimulus");
-            const char *response = peventChainElement->Attribute("response");
-            const char *label_wr = peventChainElement->Attribute("name");
-
-            EventChains2_elem *evtc_elem = new EventChains2_elem();
-            evtc_elem->runnable_stimulus = runnableName_runnableP[FirsToken_AfterStr(stimulus, "?", "_")];
-            evtc_elem->runnable_response = runnableName_runnableP[FirsToken_AfterStr(response, "?", "_")];
-
-            label_wr_id = atoi(NthToken(label_wr, "_", 2).c_str());
-            evtc_elem->label_wr = labelList[label_wr_id];
-
-            printf("\tWR_Label_%d stimulus=%s response=%s\n", label_wr_id, evtc_elem->runnable_stimulus->getName().c_str(), evtc_elem->runnable_response->getName().c_str());
-            evtc->eventChains_elems.push_back(evtc_elem);
-            psegmentElement = psegmentElement->NextSiblingElement("segments");
-
-            evtc_elem->runnable_stimulus->addChain(evtc);
-            evtc_elem->runnable_response->addChain(evtc);
-
-            //evtc_elem->label_wr->setInChain(true);
-
-            //if (label_firstinchain)
-            //{
-              //evtc_elem->label_wr->setFirstInChain(true);
-              //label_firstinchain = false;
-            //}
-        }
-
-        //labelList[label_wr_id]->setLastInChain(true);
-
-        eventChains.push_back(evtc);
-        peventChainsElement = peventChainsElement->NextSiblingElement("eventChains");
-    }
+    eventChains.push_back(evtc);
+    peventChainsElement = peventChainsElement->NextSiblingElement("eventChains");
+  }
 
   //
   // requirements mapping
@@ -491,7 +492,7 @@ void parse_XMLmodel(void)
 
     prequirementsElement = prequirementsElement->NextSiblingElement("requirements");
   }
-    printf("\n\nfine!\n");
+  printf("\n\nfine!\n");
 }
 
 int main()
@@ -502,10 +503,13 @@ int main()
 
   // Assunzione: priority value alto, priotita` alta
 
-  for (unsigned int i=0; i<CPU_NUM; ++i) {
-    ADRT(CPU[i]);
+  try {
+    for (unsigned int i=0; i<CPU_NUM; ++i) {
+      ADRT(CPU[i]);
+    }
+  } catch (string e) {
+    cerr << e << endl;
   }
-
 
   //annealing_test();
 
