@@ -73,8 +73,7 @@ double ADRT(vector<Task> &tasks)
 {
   double utilization = Utilization(tasks);
   double min_slack_normalized = std::numeric_limits<double>::max();
-
-  //cout << "Utilization on CPU: " << utilization << endl;
+  double slack;
 
   if (utilization >= 1)
     throw(std::string("utilization >= 1. Interference cannot converge, EXITING."));
@@ -106,7 +105,7 @@ double ADRT(vector<Task> &tasks)
     }
     tasks[i].response_time = Rij;
 
-    double slack = (tasks[i].deadline - tasks[i].response_time) / tasks[i].deadline;
+    slack = (tasks[i].deadline - tasks[i].response_time) / tasks[i].deadline;
 
     if (min_slack_normalized > slack)
       min_slack_normalized = slack;

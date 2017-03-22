@@ -109,11 +109,17 @@ static inline double computeInterf(const Runnable &r, const std::vector<Label> &
 
 static void printSolution(const Solution &s)
 {
-#if 0
-  for (auto v : s)
-    cout << v << " ";
+  unsigned int labels_in_memory[5];
+
+  for (unsigned int i=0; i<5; ++i)
+    labels_in_memory[i] = 0;
+
+  for (Label const &l : s)
+    ++labels_in_memory[loc_to_id(l.ram)];
+
+  for (unsigned int i=0; i<5; ++i)
+    cout << "[" << labels_in_memory[i] << "]\t";
   cout << endl;
-#endif
 }
 
 static inline void ComputeAnySolution(Solution &s)
@@ -122,7 +128,6 @@ static inline void ComputeAnySolution(Solution &s)
   std::default_random_engine generator(seed);
   std::uniform_int_distribution<int> distribution(0, 3);
   unsigned int position;
-  enum RAM_LOC ram_id;
 
   for (unsigned int i=0; i<s.size(); ++i) {
     do {
@@ -155,8 +160,8 @@ static inline Solution ComputeNewSolutionHeavy(const Solution &s)
     } while (res < 0);
 
     ram[loc_to_id(L.ram)].available += L.bitLen;
-    ram[p].available -= L.bitLen;
     L.ram = static_cast<RAM_LOC>(1 << p);
+    ram[p].available -= L.bitLen;
   }
 
   return newSol;
@@ -187,8 +192,8 @@ static inline Solution ComputeNewSolutionLight(const Solution &s)
     }
 
     ram[loc_to_id(L.ram)].available += L.bitLen;
-    ram[p].available -= L.bitLen;
     L.ram = static_cast<RAM_LOC>(1 << p);
+    ram[p].available -= L.bitLen;
   }
 
   return newSol;
@@ -244,9 +249,10 @@ static inline bool ExpProb(double dc, double T)
 }
 
 template<class T>
-inline void new_optimal_solution_found(const T &v)
+inline void new_optimal_solution_found(const T &v, const Solution &s)
 {
-  cout << "------) Optimal solution: " << v << endl;
+  cout << "------) Optimal solution: " << v << "\t -- \t";
+  printSolution(s);
 }
 
 std::pair<Solution, double> annealing()
@@ -263,10 +269,10 @@ std::pair<Solution, double> annealing()
 
   s_opt = s;
   c_opt = c = EvaluateSolution(s);
-  new_optimal_solution_found(c_opt);
+  new_optimal_solution_found(c_opt, s_opt);
 
   for (double T=MAX_T; T>MIN_T; T=T*COOLING_FACTOR) {
-    cout << "Temperature: " << T << " -- current best ( " << c_opt << " )" << endl;
+    cout << "Temperature: " << T << "\t-- current best ( " << c_opt << " )" << endl;
 
     max_I = 0;
     max_E = 0;
@@ -286,7 +292,7 @@ std::pair<Solution, double> annealing()
         if (c < c_opt) {
           s_opt = s;
           c_opt = c;
-          new_optimal_solution_found(c_opt);
+          new_optimal_solution_found(c_opt, s_opt);
         }
         ++max_I;
       } else {
