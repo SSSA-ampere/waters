@@ -118,7 +118,7 @@ static void printSolution(const Solution &s)
     ++labels_in_memory[loc_to_id(l.ram)];
 
   for (unsigned int i=0; i<5; ++i)
-    cout << "[" << labels_in_memory[i] << "]\t";
+    cout << "[" << labels_in_memory[i] << "]";
   cout << endl;
 }
 
@@ -277,7 +277,7 @@ std::pair<Solution, double> annealing()
     max_I = 0;
     max_E = 0;
 
-    while (max_I < MAX_I && max_E < MAX_E) {
+    while ((max_I < MAX_I) && (max_E < MAX_E)) {
 
       if (dist_eval(generator))
         s_new = ComputeNewSolutionHeavy(s);

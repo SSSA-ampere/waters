@@ -5,7 +5,7 @@
 #include <vector>
 
 double Utilization(const std::vector<Task> &CPU);
-double ADRT(std::vector<Task> &CPU);
+double arbitrary_deadline_response_time(std::vector<Task> &CPU);
 double min_slack(const std::vector<Label> &s);
 
 #endif

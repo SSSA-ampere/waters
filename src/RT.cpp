@@ -14,7 +14,7 @@ double min_slack(const std::vector<Label> &s)
 
   try {
     for (unsigned int i=0; i<4; ++i) {
-      min_slack_core_normalized = ADRT(CPU[i]);
+      min_slack_core_normalized = arbitrary_deadline_response_time(CPU[i]);
       if (min_slack_core_normalized < min_slack_normalized)
         min_slack_normalized = min_slack_core_normalized;
     }
@@ -69,7 +69,9 @@ double Utilization(const vector<Task> &CPU)
   return r;
 }
 
-double ADRT(vector<Task> &tasks)
+// Returns the smallest normalized slack among all the tasks
+// executed in the given processor
+double arbitrary_deadline_response_time(vector<Task> &tasks)
 {
   double utilization = Utilization(tasks);
   double min_slack_normalized = std::numeric_limits<double>::max();
