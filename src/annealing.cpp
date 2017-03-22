@@ -62,10 +62,11 @@ static inline int loc_to_id(uint8_t b)
 
 static inline void compute_coremap(const vector<Label> &labellist)
 {
-  for (Label const &l : labellist) {
-    if ( ~(coremap[loc_to_id(l.ram)] && 0x0F) )
-      coremap[loc_to_id(l.ram)] |= l.used_by_CPU; // TODO optimize this function
-  }
+  for (unsigned int i=0; i<5; ++i)
+    coremap[i] = 0;
+
+  for (Label const &l : labellist)
+      coremap[loc_to_id(l.ram)] |= l.used_by_CPU;
 }
 
 static inline double computeInterf(unsigned int run_id, const std::vector<Label> &L)
@@ -144,13 +145,13 @@ static inline Solution ComputeNewSolutionHeavy(const Solution &s)
   std::uniform_int_distribution<int> dist_noise(s.size() * 0.01, s.size() * 0.05);
   Solution newSol(s);
   unsigned int l, p;
+  int64_t res;
 
   noise = dist_noise(generator);
 
   for (unsigned int i=0; i<noise; ++i) {
     l = dist_label(generator);
 
-    int64_t res;
     do {
       p = dist_ram(generator);
       res = ram[p].available - newSol[l].bitLen;
@@ -171,17 +172,17 @@ static inline Solution ComputeNewSolutionLight(const Solution &s)
   std::default_random_engine generator(seed);
   std::uniform_int_distribution<int> dist_label(0, s.size()-1);
   std::uniform_int_distribution<int> dist_ram(0, 3);
-  std::uniform_int_distribution<int> dist_noise(1, 3);
+  std::uniform_int_distribution<int> dist_noise(1, 5);
   Solution newSol(s);
   unsigned int l, p;
+  int64_t res;
 
   noise = dist_noise(generator);
 
   for (unsigned int i=0; i<noise; ++i) {
     l = dist_label(generator);
 
-    if (newSol[l].ram & GRAM) {
-      int64_t res;
+    if (newSol[l].ram == GRAM) {
       do {
         p = dist_ram(generator);
         res = ram[p].available - newSol[l].bitLen;
@@ -200,13 +201,16 @@ static inline Solution ComputeNewSolutionLight(const Solution &s)
 
 void update_wcets(const Solution &s)
 {
+  double ram_interference = 0;
+  double runnable_wcet = 0;
+
   for (unsigned int i=0; i<4; ++i) {
     // foreach core
     for (unsigned int j=0; j<CPU[i].size(); ++j) {
       // foreach task
 
-      double ram_interference = 0;
-      double runnable_wcet = 0;
+      ram_interference = 0;
+      runnable_wcet = 0;
 
       for (unsigned int k=0; k<CPU[i].at(j).runnables.size(); ++k) {
         // foreach runnable
@@ -223,6 +227,7 @@ static inline double EvaluateSolution(const Solution &s)
 {
   double ret;
 
+  compute_coremap(s);
   update_wcets(s);
   ret = min_slack(s);
   //cout << "Minimum slack found: " << ret << endl;
@@ -259,7 +264,6 @@ std::pair<Solution, double> annealing()
 
   ComputeAnySolution(s);
   printSolution(s);
-  compute_coremap(s);
 
   s_opt = s;
   c_opt = c = EvaluateSolution(s);
@@ -267,7 +271,7 @@ std::pair<Solution, double> annealing()
   new_optimal_solution_found(c_opt);
 
   for (double T=MAX_T; T>MIN_T; T=T*COOLING_FACTOR) {
-    cout << "Temperature: " << T << endl;
+    cout << "Temperature: " << T << " -- current best ( " << c_opt << " )" << endl;
 
     max_I = 0;
     max_E = 0;
