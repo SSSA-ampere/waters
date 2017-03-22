@@ -3,26 +3,27 @@
 #include <cmath>
 #include <iostream>
 #include <cassert>
+#include <limits>
 
 using namespace std;
 
-int64_t min_slack(const std::vector<Label> &s)
+double min_slack(const std::vector<Label> &s)
 {
-  int64_t min_slack = INT64_MAX;
-  int64_t min_slack_core;
+  double min_slack_normalized = std::numeric_limits<double>::max();
+  double min_slack_core_normalized;
 
   try {
     for (unsigned int i=0; i<4; ++i) {
-      min_slack_core = ADRT(CPU[i]);
-      if (min_slack_core < min_slack)
-        min_slack = min_slack_core;
+      min_slack_core_normalized = ADRT(CPU[i]);
+      if (min_slack_core_normalized < min_slack_normalized)
+        min_slack_normalized = min_slack_core_normalized;
     }
   } catch (string e) {
     cerr << e << endl;
     exit(-1);
   }
 
-  return min_slack;
+  return min_slack_normalized;
 }
 
 static inline uint64_t Ii(const Task &k, uint64_t t)
@@ -68,10 +69,10 @@ double Utilization(const vector<Task> &CPU)
   return r;
 }
 
-int64_t ADRT(vector<Task> &tasks)
+double ADRT(vector<Task> &tasks)
 {
   double utilization = Utilization(tasks);
-  int64_t min_slack = INT64_MAX;
+  double min_slack_normalized = std::numeric_limits<double>::max();
 
   //cout << "Utilization on CPU: " << utilization << endl;
 
@@ -105,11 +106,11 @@ int64_t ADRT(vector<Task> &tasks)
     }
     tasks[i].response_time = Rij;
 
-    int64_t slack = tasks[i].deadline - tasks[i].response_time;
+    double slack = (tasks[i].deadline - tasks[i].response_time) / tasks[i].deadline;
 
-    if (min_slack > slack)
-      min_slack = slack;
+    if (min_slack_normalized > slack)
+      min_slack_normalized = slack;
   }
 
-  return min_slack;
+  return min_slack_normalized;
 }

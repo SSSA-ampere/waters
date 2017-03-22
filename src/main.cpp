@@ -485,8 +485,6 @@ void parse_XMLmodel(void)
   }
 
   cout << "Done loading Amalthea model" << endl;
-  cout << "- / - / - / - / - / - / - / - /" << endl;
-
 }
 
 int main()

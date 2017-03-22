@@ -13,5 +13,5 @@ uint64_t max_deadline = 0;
 
 double cycles2us(uint64_t instructions)
 {
-  return instructions / instructions_per_us;
+  return instructions / static_cast<double>(instructions_per_us);
 }

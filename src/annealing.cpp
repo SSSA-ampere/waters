@@ -69,9 +69,8 @@ static inline void compute_coremap(const vector<Label> &labellist)
       coremap[loc_to_id(l.ram)] |= l.used_by_CPU;
 }
 
-static inline double computeInterf(unsigned int run_id, const std::vector<Label> &L)
+static inline double computeInterf(const Runnable &r, const std::vector<Label> &L)
 {
-  Runnable &r = runnables[run_id];
   double interf = 0;
   double local_interf;
   RAM_LOC l;
@@ -137,29 +136,27 @@ static inline void ComputeAnySolution(Solution &s)
 
 static inline Solution ComputeNewSolutionHeavy(const Solution &s)
 {
-  unsigned int noise;
   unsigned int seed = std::chrono::system_clock::now().time_since_epoch().count();
   std::default_random_engine generator(seed);
   std::uniform_int_distribution<int> dist_label(0, s.size()-1);
   std::uniform_int_distribution<int> dist_ram(0, 4);
   std::uniform_int_distribution<int> dist_noise(s.size() * 0.01, s.size() * 0.05);
   Solution newSol(s);
-  unsigned int l, p;
+  unsigned int p;
   int64_t res;
-
-  noise = dist_noise(generator);
+  unsigned int noise = dist_noise(generator);
 
   for (unsigned int i=0; i<noise; ++i) {
-    l = dist_label(generator);
+    Label &L = newSol[dist_label(generator)];
 
     do {
       p = dist_ram(generator);
-      res = ram[p].available - newSol[l].bitLen;
+      res = ram[p].available - L.bitLen;
     } while (res < 0);
 
-    ram[loc_to_id(newSol[l].ram)].available += newSol[l].bitLen;
-    ram[p].available -= newSol[l].bitLen;
-    newSol[l].ram = static_cast<RAM_LOC>(1 << p);
+    ram[loc_to_id(L.ram)].available += L.bitLen;
+    ram[p].available -= L.bitLen;
+    L.ram = static_cast<RAM_LOC>(1 << p);
   }
 
   return newSol;
@@ -167,33 +164,31 @@ static inline Solution ComputeNewSolutionHeavy(const Solution &s)
 
 static inline Solution ComputeNewSolutionLight(const Solution &s)
 {
-  unsigned int noise;
   unsigned int seed = std::chrono::system_clock::now().time_since_epoch().count();
   std::default_random_engine generator(seed);
   std::uniform_int_distribution<int> dist_label(0, s.size()-1);
   std::uniform_int_distribution<int> dist_ram(0, 3);
-  std::uniform_int_distribution<int> dist_noise(1, 5);
+  std::uniform_int_distribution<int> dist_noise(1, 10);
   Solution newSol(s);
-  unsigned int l, p;
+  unsigned int p;
   int64_t res;
-
-  noise = dist_noise(generator);
+  unsigned int noise = dist_noise(generator);
 
   for (unsigned int i=0; i<noise; ++i) {
-    l = dist_label(generator);
+    Label &L = newSol[dist_label(generator)];
 
-    if (newSol[l].ram == GRAM) {
+    if (L.ram == GRAM) {
       do {
         p = dist_ram(generator);
-        res = ram[p].available - newSol[l].bitLen;
+        res = ram[p].available - L.bitLen;
       } while (res < 0);
     } else {
       p = 4;
     }
 
-    ram[loc_to_id(newSol[l].ram)].available += newSol[l].bitLen;
-    ram[p].available -= newSol[l].bitLen;
-    newSol[l].ram = static_cast<RAM_LOC>(1 << p);
+    ram[loc_to_id(L.ram)].available += L.bitLen;
+    ram[p].available -= L.bitLen;
+    L.ram = static_cast<RAM_LOC>(1 << p);
   }
 
   return newSol;
@@ -202,23 +197,26 @@ static inline Solution ComputeNewSolutionLight(const Solution &s)
 void update_wcets(const Solution &s)
 {
   double ram_interference = 0;
-  double runnable_wcet = 0;
+  double runnables_wcet = 0;
 
   for (unsigned int i=0; i<4; ++i) {
     // foreach core
     for (unsigned int j=0; j<CPU[i].size(); ++j) {
       // foreach task
+      Task &task_ij = CPU[i].at(j);
 
       ram_interference = 0;
-      runnable_wcet = 0;
+      runnables_wcet = 0;
 
-      for (unsigned int k=0; k<CPU[i].at(j).runnables.size(); ++k) {
+      for (unsigned int k=0; k<task_ij.runnables.size(); ++k) {
         // foreach runnable
-        ram_interference += computeInterf(CPU[i].at(j).runnables.at(k), s);
-        runnable_wcet += runnables[CPU[i].at(j).runnables.at(k)].exec_time;
+        Runnable &runnable_ijk = runnables[task_ij.runnables[k]];
+
+        ram_interference += computeInterf(runnable_ijk, s);
+        runnables_wcet += runnable_ijk.exec_time;
       }
 
-      CPU[i].at(j).wcet = runnable_wcet + ram_interference;
+      task_ij.wcet = runnables_wcet + ram_interference;
     }
   }
 }
@@ -256,18 +254,15 @@ std::pair<Solution, double> annealing()
   unsigned int seed = std::chrono::system_clock::now().time_since_epoch().count();
   std::default_random_engine generator(seed);
   std::uniform_int_distribution<int> dist_eval(0, 1);
-  Solution s, s_new, s_opt;
+  Solution s(labels), s_new, s_opt;
   double   c, c_new, c_opt;
+  double dc;
   unsigned int max_I, max_E;
 
-  s = labels;
-
   ComputeAnySolution(s);
-  printSolution(s);
 
   s_opt = s;
   c_opt = c = EvaluateSolution(s);
-
   new_optimal_solution_found(c_opt);
 
   for (double T=MAX_T; T>MIN_T; T=T*COOLING_FACTOR) {
@@ -284,35 +279,22 @@ std::pair<Solution, double> annealing()
         s_new = ComputeNewSolutionLight(s);
       c_new = EvaluateSolution(s_new);
 
-      double dc = c_new - c;
-
-      //cout << "DC: " << dc << " - ";
+      dc = c_new - c;
       if (dc < 0) {
-        //cout << "Better solution: " << c_new << endl;
         s = s_new;
         c = c_new;
-
-        printSolution(s);
         if (c < c_opt) {
           s_opt = s;
           c_opt = c;
           new_optimal_solution_found(c_opt);
         }
-
         ++max_I;
       } else {
-        //cout << "Worst solution - ";
         if (ExpProb(dc, T)) {
-          //cout << "Take anyway" << endl;
           s = s_new;
           c = c_new;
-
-          //printSolution(s);
-        } else {
-          //cout << "Go ahead" << endl;
         }
       }
-
       ++max_E;
     }
   }
@@ -322,7 +304,7 @@ std::pair<Solution, double> annealing()
 void annealing_run()
 {
   MAX_T = max_deadline;
-  cout << "Performing simulated annealing" << endl;
+  cout << endl << "Performing simulated annealing" << endl << endl;
   auto r = annealing();
   cout << "Done" << endl;
   cout << "Best solution found" << endl;
