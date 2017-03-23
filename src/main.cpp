@@ -379,6 +379,35 @@ void parse_XMLmodel(void)
     taskAllocationElement = taskAllocationElement->NextSiblingElement("taskAllocation");
   }
 
+  XMLElement *labelAllocationElement_first = pmappingModelElement->FirstChildElement("mapping");
+  if (labelAllocationElement_first == nullptr)
+  {
+	  cout << "label allocation not found" << endl;
+	  return;
+  }
+
+  XMLElement *labelAllocationElement = labelAllocationElement_first;
+  while (labelAllocationElement != nullptr)
+  {
+	  string label_name = firstToken(labelAllocationElement->Attribute("abstractElement"), "?");
+	  string ram_name = firstToken(labelAllocationElement->Attribute("memory"),"?");
+	  int ram_loc;
+	  if (ram_name.compare("GRAM") == 0) {
+		  ram_loc = 4;
+	  }
+	  else ram_loc = atoi(NthToken(ram_name, "M", 1).c_str());
+
+	  int label_id = atoi(NthToken(label_name, "_", 1).c_str());
+
+	  cout << label_name << "\t->\tMEMORY[ " << ram_loc << " ]" << endl;
+
+	  //store ram name
+	  labelList[label_id]->setRamLoc(ram_loc);
+	 
+
+	  labelAllocationElement = labelAllocationElement->NextSiblingElement("mapping");
+  }
+
   //
   //event_chain mapping
   //
@@ -479,7 +508,7 @@ void parse_XMLmodel(void)
 
     cout << "deadline of task " << task_name << " = " << deadline << endl;
 
-    taskName_taskP[task_name]->setDeadline(req_limit); // set deadline of relative task
+    taskName_taskP[task_name]->setDeadline(deadline); // set deadline of relative task
 
     prequirementsElement = prequirementsElement->NextSiblingElement("requirements");
   }

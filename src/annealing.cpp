@@ -262,7 +262,7 @@ std::pair<Solution, double> annealing()
   compute_coremap(s);
 
   s_opt = s;
-  c_opt = EvaluateSolution(s);
+  c_opt = c = EvaluateSolution(s);
 
   new_optimal_solution_found(c_opt);
 
