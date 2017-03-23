@@ -12,7 +12,7 @@ void copy_in_newstruct(void)
 
 		lo.id = li->getid();
 		lo.bitLen = li->getBitSize();
-		lo.ram = GRAM;
+		lo.ram = static_cast <RAM_LOC> (1 << li->getRamLoc());
 		lo.used_by_CPU = 0;
 
 		labels.push_back(lo);
@@ -52,7 +52,8 @@ void copy_in_newstruct(void)
         ro.exec_time_mean = ri->getMean();
 				ro.name = ri->getName();
 
-        ro.exec_time = ri->getLowerBound();
+        // TODO
+        ro.exec_time = ri->getMean();
 
 				for (int li : ri->labelsRead_list) {
 					ro.labels_r.push_back(li);

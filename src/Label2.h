@@ -32,6 +32,9 @@ public:
     vector<Runnable2 *> runnablesRead_list;
     vector<Runnable2 *> runnablesWrite_list;
 
+	int getRamLoc();
+	void setRamLoc(int r);
+
 private:
 
     void init();
@@ -39,4 +42,6 @@ private:
     int id;
     bool isconstant;
     int size_bit;
+
+	int ram;
 };

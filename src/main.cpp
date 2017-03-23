@@ -380,6 +380,35 @@ void parse_XMLmodel(void)
     taskAllocationElement = taskAllocationElement->NextSiblingElement("taskAllocation");
   }
 
+  XMLElement *labelAllocationElement_first = pmappingModelElement->FirstChildElement("mapping");
+  if (labelAllocationElement_first == nullptr)
+  {
+	  cout << "label allocation not found" << endl;
+	  return;
+  }
+
+  XMLElement *labelAllocationElement = labelAllocationElement_first;
+  while (labelAllocationElement != nullptr)
+  {
+	  string label_name = firstToken(labelAllocationElement->Attribute("abstractElement"), "?");
+	  string ram_name = firstToken(labelAllocationElement->Attribute("memory"),"?");
+	  int ram_loc;
+	  if (ram_name.compare("GRAM") == 0) {
+		  ram_loc = 4;
+	  }
+	  else ram_loc = atoi(NthToken(ram_name, "M", 1).c_str());
+
+	  int label_id = atoi(NthToken(label_name, "_", 1).c_str());
+
+	  cout << label_name << "\t->\tMEMORY[ " << ram_loc << " ]" << endl;
+
+	  //store ram name
+	  labelList[label_id]->setRamLoc(ram_loc);
+	 
+
+	  labelAllocationElement = labelAllocationElement->NextSiblingElement("mapping");
+  }
+
   //
   //event_chain mapping
   //
@@ -488,24 +517,12 @@ void parse_XMLmodel(void)
   cout << "Done loading Amalthea model" << endl;
 }
 
-int main()
+void print_tasks_info()
 {
-  parse_XMLmodel();
-
-  for (int i=0; i<4; i++)
-    ram[i].size = ram[i].available = 131072;
-  ram[4].size = ram[4].available = 131072 * 2;
-
-  copy_in_newstruct();
-
-  return 0;
-  // Assunzione: priority value alto, priotita` alta
-  //annealing_run();
-
   // Riordina task per priorita`
   for (int i=0; i<4; i++)
     std::sort(CPU[i].begin(), CPU[i].end(),
-	[](const Task &a, const Task &b) { return a.prio > b.prio; } );
+              [](const Task &a, const Task &b) { return a.prio > b.prio; } );
 
   for (int i=0; i<4; i++) {
     double U = 0;
@@ -517,9 +534,26 @@ int main()
     }
     cout << "-----------------" << endl;
   }
+}
+
+int main()
+{
+  parse_XMLmodel();
+
+  for (int i=0; i<4; i++)
+    ram[i].size = ram[i].available = 131072;
+  ram[4].size = ram[4].available = 131072 * 2;
+
+  copy_in_newstruct();
+
+  return 0;
+
+  // Assunzione: priority value alto, priotita` alta
+  //annealing_run();
+
+  print_tasks_info();
 
   fflush(stdout);
-
 #ifdef _WIN32
   system("pause");
 #endif

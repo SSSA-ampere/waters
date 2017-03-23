@@ -68,3 +68,12 @@ bool Label2::getIsConstant()
 {
   return isconstant;
 }
+
+int Label2::getRamLoc()
+{
+	return ram;
+}
+void Label2::setRamLoc(int r)
+{
+	ram = r;
+}
