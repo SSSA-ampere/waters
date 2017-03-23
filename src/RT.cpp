@@ -15,35 +15,41 @@ void jobAccessToMem(const Task &t, const std::vector<Label> &L, uint64_t acc[])
 {
 	RAM_LOC loc;
 
-	for (int i = 0; i < t.labels_r.size(); ++i) { // for all labels read
+	for (unsigned int i = 0; i < t.labels_r.size(); ++i) { // for all labels read
 		loc = L[t.labels_r[i]].ram;
 		acc[loc_to_id(loc)] += t.labels_r_access[i];
 	}
 
-	for (int i = 0; i < t.labels_w.size(); ++i) { // for all labels written
+	for (unsigned int i = 0; i < t.labels_w.size(); ++i) { // for all labels written
 		loc = L[t.labels_w[i]].ram;
 		++acc[loc_to_id(loc)];
 	}
 }
 
-void computeOthercoresAccessToMem(int core_i, const std::vector<Label> &L, uint64_t t)
+void computeOthercoresAccessToMem(int core_i, const std::vector<Label> &L, uint64_t t, uint64_t acc[], uint64_t crosscore[])
 {
+	uint64_t num_access[5] = { 0,0,0,0,0 };
 	uint8_t othercores_job_act = 0;
-	uint64_t Rij = 0;
-	uint64_t num_of_interf_access = 0;
+	double Rij = 0;
 
 	for (unsigned int i = 0; i < 4; ++i) {
 		if (i != core_i) {
 			// foreach core different from i-th core
 
 			for (unsigned int j = 0; j < CPU[i].size(); ++j) {
-				// foreach task ORDERED BY DECREASING PRIORITY
+				// foreach task
 				Task &task_ij = CPU[i].at(j);
 				Rij = task_ij.response_time;
 				othercores_job_act = ceil(static_cast<double>(Rij + t )/ task_ij.period);
-				num_of_interf_access += othercores_job_act;
+				jobAccessToMem(task_ij, L, num_access);
+				for (unsigned int m = 0; m < 5; m++) {
+					acc[m] += othercores_job_act * num_access[m];
+					if (m != i) {
+						crosscore[m] += othercores_job_act * num_access[m];
+					}
+					num_access[m] = 0;
+				}
 			}
-
 		}
 	}
 }
@@ -52,41 +58,65 @@ void computeOthercoresAccessToMem(int core_i, const std::vector<Label> &L, uint6
 void computeCoreAccessToMem(const std::vector<Label> &s, uint64_t t)
 {
 	uint64_t num_access[5] = { 0,0,0,0,0 };
-	uint64_t num_core_access_to_mem[5] = { 0,0,0,0,0 };
-	uint64_t num_othercores_access_to_mem[5] = { 0,0,0,0,0 };
-	uint64_t min_num_access_to_mem[5] = { 0,0,0,0,0 };
+	uint64_t core_access_to_mem[5] = { 0,0,0,0,0 };
+	uint64_t othercores_access_to_mem[5] = { 0,0,0,0,0 };
+	uint64_t crosscore_contentions[5] = { 0,0,0,0,0 };
+
+	double blocking_time;
+	double access_time;
 
 	uint8_t job_act;
-	uint64_t Rij = 0;
+	double Rij = 0;
 
 	for (unsigned int i = 0; i < 4; ++i) {
 		// foreach core
+		memset(core_access_to_mem, 0, sizeof(core_access_to_mem));
+		memset(crosscore_contentions, 0, sizeof(crosscore_contentions));
+		memset(othercores_access_to_mem, 0, sizeof(othercores_access_to_mem));
+		computeOthercoresAccessToMem(i, s, t, othercores_access_to_mem, crosscore_contentions);
 
-		computeOthercoresAccessToMem(i, s, t);
 
 		for (unsigned int j = 0; j<CPU[i].size(); ++j) {
 			// foreach task ORDERED BY DECREASING PRIORITY
 			Task &task_ij = CPU[i].at(j);
+			blocking_time = 0;
+			access_time = 0;
+
 			job_act = ceil(static_cast<double> (t) / task_ij.period);
 			jobAccessToMem(task_ij, s, num_access);
-			for (int m = 0; m < 5; m++) {
-				num_core_access_to_mem[m] += job_act * num_access[m];
+
+			for (unsigned int m = 0; m < 5; m++) {
+				// foreach memory 
+				
+				// compute number of i-th core accesses to memory
+				core_access_to_mem[m] += job_act * num_access[m];
+
+				// compute access time
+				if (m != i)
+					access_time += cycles2us(9 * num_access[m]);
+				else
+					access_time += cycles2us(num_access[m]);
+
+				// compute blocking time
+				if (core_access_to_mem[m] < othercores_access_to_mem[m]) { 
+					// if the i-th core has the minimum number of memory accesses
+					
+					if (core_access_to_mem[m] < crosscore_contentions[m])
+						blocking_time += cycles2us(static_cast<uint64_t>(9 * core_access_to_mem[m]));
+					else
+						blocking_time += cycles2us(static_cast<uint64_t>(9 * crosscore_contentions[m] + core_access_to_mem[m] - crosscore_contentions[m]));
+				}
+				else {
+					// if the other cores togheter have the minimum number of memory accesses
+					blocking_time += cycles2us(static_cast<uint64_t>(9 * crosscore_contentions[m] + othercores_access_to_mem[m] - crosscore_contentions[m]));
+				}
 				num_access[m] = 0;
 			}
 
-			for (int m = 0; m < 5; m++) {
-				if (num_core_access_to_mem[m] < num_othercores_access_to_mem[m]) {
-
-					//TODO
-
-				}
-				else min_num_access_to_mem[m] = num_othercores_access_to_mem[m];
-			}
-
+			task_ij.blocking_time = blocking_time;
+			task_ij.access_time = access_time;
+			task_ij.response_time = job_act * (task_ij.exec_time + task_ij.access_time) + task_ij.blocking_time;
 		}
-
-
-
 	}
 }
 

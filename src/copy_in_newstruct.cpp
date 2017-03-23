@@ -37,6 +37,8 @@ void copy_in_newstruct(void)
 			to.interarrival_max = ti->getMaxInterArrivalTime();
 			to.interarrival_min = ti->getMinInterArrivalTime();
 			to.wcet = 0;
+			to.response_time = 0;
+			to.exec_time = 0;
 
 			CPU[i].push_back(to);
 
@@ -65,6 +67,7 @@ void copy_in_newstruct(void)
 				for (int ni : ri->labelsRead_num_access) {
 					ro.labels_r_access.push_back(ni);
 					t->labels_r_access.push_back(ni);
+					t->response_time += cycles2us(ni);
 									}
 				for (int li : ri->labelsWrite_list) {
 					ro.labels_w.push_back(li);
@@ -75,11 +78,15 @@ void copy_in_newstruct(void)
 				for (int ni : ri->labelsWrite_num_access) {
 					ro.labels_w_access.push_back(ni);
 					t->labels_w_access.push_back(ni);
+					t->response_time += cycles2us(ni);
 				}
 
+				t->exec_time += ro.exec_time;
+				t->wcet += ro.exec_time;
+				t->response_time += ro.exec_time;
 				runnables.push_back(ro);
 				t->runnables.push_back(ro.id);
-				t->wcet += ro.exec_time;
+
 			}
 		}
 	}

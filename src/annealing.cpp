@@ -67,7 +67,7 @@ static inline double computeInterf(const Runnable &r, const std::vector<Label> &
   uint8_t u;
   int num_label_acc;
 
-  for (int i = 0; i < r.labels_r.size(); ++i) { // for all labels read
+  for (unsigned int i = 0; i < r.labels_r.size(); ++i) { // for all labels read
     local_interf = 0;
 
     l = L[i].ram;
@@ -83,7 +83,7 @@ static inline double computeInterf(const Runnable &r, const std::vector<Label> &
     interf += local_interf;
   }
 
-  for (int i = 0; i < r.labels_w.size(); ++i) { // for all labels written
+  for (unsigned int i = 0; i < r.labels_w.size(); ++i) { // for all labels written
 
     l = L[i].ram;
     u = coremap[loc_to_id(l)];

@@ -5,7 +5,7 @@
 #include <string>
 #include <stdint.h>
 
-const uint64_t instructions_per_us = 2e8 / 1e6;
+const double instructions_per_us = 2e8 / 1e6;
 
 enum RAM_LOC {
 	LRAM_0 = 1,
@@ -56,6 +56,9 @@ struct Task { // TODO inserire periodico o ISR
 	uint64_t period;
 	double response_time;
 	double wcet;
+	double exec_time;
+	double blocking_time;
+	double access_time;
 	uint64_t interarrival_max;
 	uint64_t interarrival_min;
 	std::vector<unsigned int> runnables;
