@@ -17,6 +17,7 @@
 #include <vector>
 #include <map>
 #include <iostream>
+#include <algorithm>
 
 const unsigned int CPU_NUM = 4;
 
@@ -497,8 +498,25 @@ int main()
 
   copy_in_newstruct();
 
+  return 0;
   // Assunzione: priority value alto, priotita` alta
-  annealing_run();
+  //annealing_run();
+
+  // Riordina task per priorita`
+  for (int i=0; i<4; i++)
+    std::sort(CPU[i].begin(), CPU[i].end(),
+	[](const Task &a, const Task &b) { return a.prio > b.prio; } );
+
+  for (int i=0; i<4; i++) {
+    double U = 0;
+    cout << "CPU " << i << endl;
+    cout << "Wcet\tPeriod\tPrio\tU\tName" << endl;
+    for (Task &t : CPU[i]) {
+      U += t.wcet / t.period;
+      cout << t.wcet << "\t" << t.period << "\t" << t.prio << "\t" << U << "\t" << t.name << endl;
+    }
+    cout << "-----------------" << endl;
+  }
 
   fflush(stdout);
 
