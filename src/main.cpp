@@ -519,11 +519,6 @@ void parse_XMLmodel(void)
 
 void print_tasks_info()
 {
-  // Riordina task per priorita`
-  for (int i=0; i<4; i++)
-    std::sort(CPU[i].begin(), CPU[i].end(),
-              [](const Task &a, const Task &b) { return a.prio > b.prio; } );
-
   for (int i=0; i<4; i++) {
     double U = 0;
     cout << "CPU " << i << endl;
@@ -546,10 +541,8 @@ int main()
 
   copy_in_newstruct();
 
-  return 0;
-
   // Assunzione: priority value alto, priotita` alta
-  //annealing_run();
+  annealing_run();
 
   print_tasks_info();
 

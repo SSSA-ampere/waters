@@ -34,7 +34,7 @@ struct Runnable { // add bool = response time important (end of task or inchain)
 
 	std::string name;
 	unsigned int id;
-	unsigned int task_id;
+	//unsigned int task_id;
 	unsigned int cpu_id;
   double exec_time_max;
   double exec_time_min;
@@ -49,16 +49,20 @@ struct Runnable { // add bool = response time important (end of task or inchain)
 struct Task { // TODO inserire periodico o ISR
 
 	std::string name;
-	unsigned int id;
+	//unsigned int id;
 	unsigned int cpu_id;
 	unsigned int prio;
 	uint64_t deadline;
 	uint64_t period;
-  double response_time;
-  double wcet;
+	double response_time;
+	double wcet;
 	uint64_t interarrival_max;
 	uint64_t interarrival_min;
 	std::vector<unsigned int> runnables;
+	std::vector<unsigned int> labels_r;
+	std::vector<unsigned int> labels_r_access;
+	std::vector<unsigned int> labels_w;
+	std::vector<unsigned int> labels_w_access;
 };
 
 struct Event_Chain {

@@ -50,16 +50,6 @@ static inline int one_counter(uint8_t b)
   return counter;
 }
 
-static inline int loc_to_id(uint8_t b)
-{
-  register int counter = -1;
-  while (b != 0) {
-    ++counter;
-    b = b >> 1;
-  }
-  return counter;
-}
-
 static inline void compute_coremap(const vector<Label> &labellist)
 {
   for (unsigned int i=0; i<5; ++i)
