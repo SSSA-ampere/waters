@@ -64,22 +64,27 @@ void computeCoreAccessToMem(const std::vector<Label> &s, uint64_t t)
 
 	double blocking_time;
 	double access_time;
+	double old_part_response_time = 0;
 
 	uint8_t job_act;
 	double Rij = 0;
 
 	for (unsigned int i = 0; i < 4; ++i) {
 		// foreach core
-		memset(core_access_to_mem, 0, sizeof(core_access_to_mem));
-		memset(crosscore_contentions, 0, sizeof(crosscore_contentions));
-		memset(othercores_access_to_mem, 0, sizeof(othercores_access_to_mem));
-		computeOthercoresAccessToMem(i, s, t, othercores_access_to_mem, crosscore_contentions);
+		
+		//reset
+		for (unsigned int vec_i = 0; vec_i < 5; ++vec_i) {
+			core_access_to_mem[vec_i] = 0;
+			crosscore_contentions[vec_i] = 0;
+			othercores_access_to_mem[vec_i] = 0;
+		}
+		blocking_time = 0;
 
+		computeOthercoresAccessToMem(i, s, t, othercores_access_to_mem, crosscore_contentions);
 
 		for (unsigned int j = 0; j<CPU[i].size(); ++j) {
 			// foreach task ORDERED BY DECREASING PRIORITY
 			Task &task_ij = CPU[i].at(j);
-			blocking_time = 0;
 			access_time = 0;
 
 			job_act = ceil(static_cast<double> (t) / task_ij.period);
@@ -104,24 +109,23 @@ void computeCoreAccessToMem(const std::vector<Label> &s, uint64_t t)
 					if (core_access_to_mem[m] < crosscore_contentions[m])
 						blocking_time += cycles2us(static_cast<uint64_t>(9 * core_access_to_mem[m]));
 					else
-						blocking_time += cycles2us(static_cast<uint64_t>(9 * crosscore_contentions[m] + core_access_to_mem[m] - crosscore_contentions[m]));
+						blocking_time += cycles2us(static_cast<uint64_t>(9 * crosscore_contentions[m] + (core_access_to_mem[m] - crosscore_contentions[m])));
 				}
 				else {
 					// if the other cores togheter have the minimum number of memory accesses
-					blocking_time += cycles2us(static_cast<uint64_t>(9 * crosscore_contentions[m] + othercores_access_to_mem[m] - crosscore_contentions[m]));
+					blocking_time += cycles2us(static_cast<uint64_t>(9 * crosscore_contentions[m] + (othercores_access_to_mem[m] - crosscore_contentions[m])));
 				}
 				num_access[m] = 0;
 			}
 
 			task_ij.blocking_time = blocking_time;
 			task_ij.access_time = access_time;
-			task_ij.response_time = job_act * (task_ij.exec_time + task_ij.access_time) + task_ij.blocking_time;
+			task_ij.response_time = old_part_response_time + job_act * (task_ij.exec_time + task_ij.access_time) + task_ij.blocking_time; 
+			// TODO response time iterative with or without blocking time?
+			old_part_response_time = old_part_response_time + job_act * (task_ij.exec_time + task_ij.access_time);
 		}
 	}
 }
-
-
-
 
 
 

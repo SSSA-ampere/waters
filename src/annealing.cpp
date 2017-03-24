@@ -211,7 +211,7 @@ void update_wcets(const Solution &s)
         runnables_wcet += runnable_ijk.exec_time;
       }
 
-      task_ij.wcet = runnables_wcet + ram_interference;
+      task_ij.inflated_wcet = runnables_wcet + ram_interference;
     }
   }
 }

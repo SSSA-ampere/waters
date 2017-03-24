@@ -25,7 +25,7 @@ void copy_in_newstruct(void)
 			Task to;
 
 			to.name = ti->getName();
-			//to.id = task_id_counter++;
+			to.id = task_id_counter++;
 			to.cpu_id = i;
 			to.period = ti->getPeriod();
 			to.deadline = ti->getDeadline();
@@ -48,7 +48,7 @@ void copy_in_newstruct(void)
 				Runnable ro;
 
 				ro.id = runnable_id_counter++;
-				//ro.task_id = to.id;
+				ro.task_id = to.id;
 				ro.cpu_id = i;
 				ro.exec_time_max = ri->getUpperBound();
 				ro.exec_time_min = ri->getLowerBound();
