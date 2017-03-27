@@ -116,6 +116,10 @@ double computeSelfAccessTime(const std::vector<Label> &s, const Task &k, double 
 			
 			computeNumAccesses(s, tj, tot_acc, t);
 			acc_time += computeAccessTime(tj, tot_acc);
+
+			for (unsigned int m = 0; m < 5; ++m) {
+				tot_acc[m] = 0;
+			}
 		}
 	}
 	return acc_time;
@@ -133,7 +137,7 @@ double computeBlockingTime(const std::vector<Label> &s, const Task &k, double t)
 
 	for (Task const &tj : CPU[k.cpu_id]) {
 		if (tj.prio >= k.prio) {
-			computeNumAccesses(s, k, self_acc, t);
+			computeNumAccesses(s, tj, self_acc, t);
 		}
 	}
 
@@ -263,7 +267,7 @@ double min_slack(const std::vector<Label> &s)
 					min_slack_core_normalized = t.deadline - t.response_time1;
 			}
 
-			// min_slack_core_normalized = arbitrary_deadline_response_time(CPU[i],s); // TODO
+			min_slack_core_normalized = arbitrary_deadline_response_time(CPU[i],s); // TODO
 			if (min_slack_core_normalized < min_slack_normalized)
 				min_slack_normalized = min_slack_core_normalized;
 		}

@@ -242,8 +242,8 @@ inline void new_optimal_solution_found(const T &v, const Solution &s)
 	cout << "------) Optimal solution: " << v << "\t -- \t";
 	printSolution(s);
 
-	std::time_t now = std::time(NULL);
-	cout << "\t" << std::ctime(&now) << endl;
+	//std::time_t now = std::time(NULL);
+	//cout << "\t" << std::ctime(&now) << endl;
 }
 
 std::pair<Solution, double> annealing()
