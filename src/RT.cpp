@@ -8,16 +8,16 @@
 
 using namespace std;
 
-static inline uint64_t Ii(const Task &k, uint64_t t)
+static inline double Ii(const Task &k, double t)
 {
-	uint64_t result = 0;
-	uint64_t ceiling;
-	uint64_t C_j;
+	double result = 0;
+	double ceiling;
+	double C_j;
 	double T_j;
 
 	for (Task const &tj : CPU[k.cpu_id]) {
 		if (tj.prio > k.prio) {
-			T_j = tj.period;
+			T_j = static_cast<double>(tj.period);
 			C_j = tj.wcet;
 
 			ceiling = ceil(t / T_j);
@@ -28,19 +28,38 @@ static inline uint64_t Ii(const Task &k, uint64_t t)
 	return result;
 }
 
-uint64_t Ri1(const Task &k, const std::vector<Label> &s)
+double Ri1(const Task &k, const std::vector<Label> &s)
 {
-	uint64_t R, R_old;
+	double R, R_old;
 
 	R = k.wcet;
 	do {
 		R_old = R;
 		R = k.wcet + Ii(k, R_old);
-	} while (R != R_old);
+	} while (R > R_old);
 
 	return R;
 }
 
+static inline double Interf(const Task &k, double t)
+{
+	double result = 0;
+	double ceiling;
+	double C_j;
+	double T_j;
+
+	for (Task const &tj : CPU[k.cpu_id]) {
+		if (tj.prio > k.prio) {
+			T_j = static_cast<double>(tj.period);
+			C_j = tj.exec_time;
+
+			ceiling = ceil(t / T_j);
+			result += ceiling * C_j;
+		}
+	}
+
+	return result;
+}
 
 void jobAccessToMem(const Task &t, const std::vector<Label> &L, uint64_t acc[])
 {
@@ -57,10 +76,10 @@ void jobAccessToMem(const Task &t, const std::vector<Label> &L, uint64_t acc[])
 	}
 }
 
-void computeOthercoresAccessToMem(int core_i, const std::vector<Label> &L, uint64_t t, uint64_t acc[], uint64_t crosscore[])
+void computeOthercoresAccessToMem(int core_i, const std::vector<Label> &L, double t, uint64_t acc_tot[], uint64_t crosscore[])
 {
-	uint64_t num_access[5] = { 0,0,0,0,0 };
-	uint8_t othercores_job_act = 0;
+	uint64_t num_acc[5] = { 0,0,0,0,0 };
+	uint64_t job_act = 0;
 	double Rij = 0;
 
 	for (unsigned int i = 0; i < 4; ++i) {
@@ -70,35 +89,109 @@ void computeOthercoresAccessToMem(int core_i, const std::vector<Label> &L, uint6
 			for (unsigned int j = 0; j < CPU[i].size(); ++j) {
 				// foreach task
 				Task &task_ij = CPU[i].at(j);
-				Rij = task_ij.response_time;
-				othercores_job_act = ceil(static_cast<double>(Rij + t )/ task_ij.period);
-				jobAccessToMem(task_ij, L, num_access);
+
+				Rij = task_ij.response_time1; //TODO convert to response_time
+
+				job_act = static_cast<uint64_t>(ceil(static_cast<double>((Rij + t) / task_ij.period)));
+
+				// compute number of job accesses to memory
+				jobAccessToMem(task_ij, L, num_acc);
+
 				for (unsigned int m = 0; m < 5; m++) {
-					acc[m] += othercores_job_act * num_access[m];
+					acc_tot[m] += job_act * num_acc[m];
 					if (m != i) {
-						crosscore[m] += othercores_job_act * num_access[m];
+						crosscore[m] += job_act * num_acc[m];
 					}
-					num_access[m] = 0;
+					num_acc[m] = 0;
 				}
 			}
 		}
 	}
 }
 
-
-void computeCoreAccessToMem(const std::vector<Label> &s)
+double computeAccessTime(const Task &k, uint64_t n_acc[]) // time spent for task k on accessing memories
 {
-	uint64_t num_access[5] = { 0,0,0,0,0 };
-	uint64_t core_access_to_mem[5] = { 0,0,0,0,0 };
-	uint64_t othercores_access_to_mem[5] = { 0,0,0,0,0 };
-	uint64_t crosscore_contentions[5] = { 0,0,0,0,0 };
+	double acc_time = 0;
 
-	double blocking_time;
-	double access_time;
-	double old_part_response_time = 0;
+	for (unsigned int m = 0; m < 5; m++) {
+		// foreach memory 
+		if (m != k.cpu_id)
+			acc_time += cycles2us(9 * n_acc[m]);
+		else
+			acc_time += cycles2us(n_acc[m]);
+	}
+	return acc_time;
+}
 
-	uint8_t job_act;
+void computeNumAccesses(const std::vector<Label> &s, const Task &k, uint64_t tot_acc[], double t)
+{
+	uint64_t n_acc[5] = { 0,0,0,0,0 };
+	// compute number of job accesses to memory
+	jobAccessToMem(k, s, n_acc);
+
+	uint64_t job_act = static_cast<uint64_t>(ceil(static_cast<double> (t) / k.period));
+
+	for (unsigned int m = 0; m < 5; m++) {
+		// foreach memory 
+
+		// compute number of accesses to memory for all job activations 
+		tot_acc[m] += job_act * n_acc[m];
+	}
+}
+
+double computeSelfAccessTime(const std::vector<Label> &s, const Task &k, double t)
+{
+	uint64_t tot_acc[5] = { 0,0,0,0,0 };
+	double acc_time = 0;
+
+	for (Task const &tj : CPU[k.cpu_id]) {
+		if (tj.prio >= k.prio) {
+			
+			computeNumAccesses(s, tj, tot_acc, t);
+			acc_time += computeAccessTime(tj, tot_acc);
+		}
+	}
+	return acc_time;
+}
+
+double computeBlockingTime(const std::vector<Label> &s, const Task &k, double t)
+{
+	uint64_t crosscore_acc[5] = { 0,0,0,0,0 };
+	uint64_t self_acc[5] = { 0,0,0,0,0 };
+	uint64_t other_cores_acc[5] = { 0,0,0,0,0 };
+	uint64_t tot_acc[5] = { 0,0,0,0,0 };
+	double block_time = 0;
+
+	for (Task const &tj : CPU[k.cpu_id]) {
+		if (tj.prio >= k.prio) {
+			computeNumAccesses(s, k, self_acc, t);
+		}
+	}
+
+	computeOthercoresAccessToMem(k.cpu_id, s, t, other_cores_acc, crosscore_acc);
+
+	for (unsigned int m = 0; m < 5; m++) {
+		// foreach memory 
+
+		// find minimum number of accesses
+		if (self_acc[m] < other_cores_acc[m])
+			tot_acc[m] = self_acc[m];
+		else tot_acc[m] = other_cores_acc[m];
+
+		// calculate worst-case blocking time
+		if (tot_acc[m] < crosscore_acc[m])
+			block_time += cycles2us(static_cast<uint64_t>(9 * tot_acc[m]));
+		else
+			block_time += cycles2us(static_cast<uint64_t>(9 * crosscore_acc[m] + (tot_acc[m] - crosscore_acc[m])));
+	}
+	return block_time;
+}
+
+
+void computeResponseTime(const std::vector<Label> &s)
+{
 	double Rij, Rij_old;
+	double Rij_instr, Rij_acc, Rij_block;
 
 	for (unsigned int i = 0; i < 4; ++i) {
 		// foreach core
@@ -107,61 +200,18 @@ void computeCoreAccessToMem(const std::vector<Label> &s)
 			// foreach task ORDERED BY DECREASING PRIORITY
 			Task &task_ij = CPU[i].at(j);
 
-			jobAccessToMem(task_ij, s, num_access);
-
-			do {
-				//reset
-				for (unsigned int vec_i = 0; vec_i < 5; ++vec_i) {
-					core_access_to_mem[vec_i] = 0;
-					crosscore_contentions[vec_i] = 0;
-					othercores_access_to_mem[vec_i] = 0;
-					num_access[vec_i] = 0;
-				}
-				blocking_time = 0;
-				access_time = 0;
-
+			do {			
 				Rij_old = task_ij.response_time1;
 
-				computeOthercoresAccessToMem(i, s, Rij_old, othercores_access_to_mem, crosscore_contentions);
+				Rij_instr = task_ij.exec_time + Interf(task_ij, Rij_old);
+				Rij_acc = computeSelfAccessTime(s, task_ij, Rij_old);
+				Rij_block = computeBlockingTime(s, task_ij, Rij_old);
 
-				job_act = ceil(static_cast<double> (Rij_old) / task_ij.period);
+				Rij = Rij_instr + Rij_acc + Rij_block;
 
-				for (unsigned int m = 0; m < 5; m++) {
-					// foreach memory 
+				task_ij.response_time1 = Rij;
 
-					// compute number of i-th core accesses to memory
-					core_access_to_mem[m] += job_act * num_access[m];
-
-					// compute access time
-					if (m != i)
-						access_time += cycles2us(9 * num_access[m]);
-					else
-						access_time += cycles2us(num_access[m]);
-
-					// compute blocking time
-					if (core_access_to_mem[m] < othercores_access_to_mem[m]) {
-						// if the i-th core has the minimum number of memory accesses
-
-						if (core_access_to_mem[m] < crosscore_contentions[m])
-							blocking_time += cycles2us(static_cast<uint64_t>(9 * core_access_to_mem[m]));
-						else
-							blocking_time += cycles2us(static_cast<uint64_t>(9 * crosscore_contentions[m] + (core_access_to_mem[m] - crosscore_contentions[m])));
-					}
-					else {
-						// if the other cores togheter have the minimum number of memory accesses
-						blocking_time += cycles2us(static_cast<uint64_t>(9 * crosscore_contentions[m] + (othercores_access_to_mem[m] - crosscore_contentions[m])));
-					}
-				}
-
-				Rij = Rij_old +  + job_act * (task_ij.exec_time + access_time) + blocking_time;
-
-			} while (Rij != Rij_old);
-
-			task_ij.blocking_time = blocking_time;
-			task_ij.access_time = access_time;
-			task_ij.response_time = old_part_response_time + job_act * (task_ij.exec_time + task_ij.access_time) + task_ij.blocking_time; 
-			// TODO response time iterative with or without blocking time?
-			old_part_response_time = old_part_response_time + job_act * (task_ij.exec_time + task_ij.access_time);
+			} while (Rij > Rij_old);
 		}
 	}
 }
@@ -175,7 +225,7 @@ static inline double Ii_lb(const Task &k, double t)
 
 	for (Task const &tj : CPU[k.cpu_id]) {
 		if (tj.prio > k.prio) {
-			T_j = tj.period;
+			T_j = static_cast<double>(tj.period);
 			C_j = tj.inflated_wcet;
 
 			ceiling = ceil(t / T_j);
@@ -203,6 +253,8 @@ void compute_RT_lb()
 				Rij = task_ij.inflated_wcet + Ii_lb(task_ij, Rij_old);
 				task_ij.RT_lb = Rij;
 			} while (Rij != Rij_old);
+
+			task_ij.response_time1 = task_ij.RT_lb;
 
 			if (Rij > task_ij.deadline) {
 				cout << "deadline missed for task" << task_ij.name << endl;
@@ -253,8 +305,8 @@ double arbitrary_deadline_response_time(vector<Task> &tasks, const std::vector<L
     throw(std::string("utilization >= 1. Interference cannot converge, EXITING."));
 
   for (unsigned int i=0; i<tasks.size(); ++i) {
-    uint64_t r_i1, r_ij, r_ij_1, r_ij_old;
-    uint64_t Rij;
+    double r_i1, r_ij, r_ij_1, r_ij_old;
+    double Rij;
 
     r_i1 = Ri1(tasks[i],s);
 

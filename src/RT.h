@@ -9,5 +9,6 @@ double arbitrary_deadline_response_time(std::vector<Task> &CPU, const std::vecto
 double min_slack(const std::vector<Label> &s);
 
 void compute_RT_lb();
+void computeResponseTime(const std::vector<Label> &s);
 
 #endif

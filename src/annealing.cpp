@@ -114,7 +114,7 @@ static void printSolution(const Solution &s)
 
 static inline void ComputeAnySolution(Solution &s)
 {
-  unsigned int seed = std::chrono::system_clock::now().time_since_epoch().count();
+  int seed = std::chrono::system_clock::now().time_since_epoch().count();
   std::default_random_engine generator(seed);
   std::uniform_int_distribution<int> distribution(0, 3);
   unsigned int position;
@@ -159,7 +159,7 @@ static inline Solution ComputeNewSolutionHeavy(const Solution &s)
 
 static inline Solution ComputeNewSolutionLight(const Solution &s)
 {
-  unsigned int seed = std::chrono::system_clock::now().time_since_epoch().count();
+  int seed = std::chrono::system_clock::now().time_since_epoch().count();
   std::default_random_engine generator(seed);
   std::uniform_int_distribution<int> dist_label(0, s.size()-1);
   std::uniform_int_distribution<int> dist_ram(0, 3);
@@ -212,6 +212,7 @@ void update_wcets(const Solution &s)
       }
 
       task_ij.inflated_wcet = runnables_wcet + ram_interference;
+	  task_ij.wcet = runnables_wcet + ram_interference; // TODO
     }
   }
 }
@@ -222,6 +223,7 @@ static inline double EvaluateSolution(const Solution &s)
 
   compute_coremap(s);
   update_wcets(s);
+  computeResponseTime(s);
   ret = min_slack(s);
   //cout << "Minimum slack found: " << ret << endl;
 
@@ -299,7 +301,7 @@ std::pair<Solution, double> annealing()
 
 void annealing_run()
 {
-  MAX_T = max_deadline;
+  MAX_T = static_cast<double>(max_deadline);
   cout << endl << "Performing simulated annealing" << endl << endl;
   auto r = annealing();
   cout << "Done" << endl;

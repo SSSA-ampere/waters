@@ -89,6 +89,10 @@ extern std::vector<Event_Chain> event_chains;
 extern RAM ram[5];
 extern uint64_t max_deadline;
 
-double cycles2us(uint64_t instructions);
+template<class T>
+double cycles2us(const T &instructions)
+{
+	return static_cast<double>(instructions) / instructions_per_us;
+}
 
 #endif

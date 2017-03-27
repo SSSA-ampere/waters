@@ -35,11 +35,12 @@ void copy_in_newstruct(void)
 			if (to.deadline > max_deadline)
 				max_deadline = to.deadline;
 
-			to.prio = ti->getPriority();
+			to.prio = static_cast<unsigned int>(ti->getPriority());
 			to.interarrival_max = ti->getMaxInterArrivalTime();
 			to.interarrival_min = ti->getMinInterArrivalTime();
 			to.wcet = 0;
 			to.response_time = 0;
+			to.response_time1 = 0;
 			to.exec_time = 0;
 
 			CPU[i].push_back(to);
@@ -58,7 +59,7 @@ void copy_in_newstruct(void)
 				ro.name = ri->getName();
 
 				// TODO
-				ro.exec_time = scaling_factor*ri->getMean();
+				ro.exec_time = scaling_factor*ri->getLowerBound();
 
 				for (int li : ri->labelsRead_list) {
 					ro.labels_r.push_back(li);
