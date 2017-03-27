@@ -55,6 +55,8 @@ struct Task { // TODO inserire periodico o ISR
 	uint64_t deadline;
 	uint64_t period;
 	double response_time;
+	double response_time1;
+	double RT_lb;
 	double wcet;
 	double inflated_wcet;
 	double exec_time;

@@ -8,4 +8,6 @@ double Utilization(const std::vector<Task> &CPU);
 double arbitrary_deadline_response_time(std::vector<Task> &CPU, const std::vector<Label> &s);
 double min_slack(const std::vector<Label> &s);
 
+void compute_RT_lb();
+
 #endif

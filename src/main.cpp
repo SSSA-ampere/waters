@@ -13,6 +13,7 @@
 #include "copy_in_newstruct.h"
 
 #include "annealing.h"
+#include "RT.h"
 
 #include <vector>
 #include <map>
@@ -540,6 +541,8 @@ int main()
   ram[4].size = ram[4].available = 131072 * 2;
 
   copy_in_newstruct();
+
+  compute_RT_lb();
 
   // Assunzione: priority value alto, priotita` alta
   annealing_run();

@@ -2,6 +2,8 @@
 #include "milpData.h"
 #include <algorithm>
 
+double scaling_factor = 1;
+
 void copy_in_newstruct(void)
 {
 	static unsigned int task_id_counter = 0;
@@ -56,7 +58,7 @@ void copy_in_newstruct(void)
 				ro.name = ri->getName();
 
 				// TODO
-				ro.exec_time = ri->getMean();
+				ro.exec_time = scaling_factor*ri->getMean();
 
 				for (int li : ri->labelsRead_list) {
 					ro.labels_r.push_back(li);
@@ -84,6 +86,8 @@ void copy_in_newstruct(void)
 				t->exec_time += ro.exec_time;
 				t->wcet += ro.exec_time;
 				t->response_time += ro.exec_time;
+				t->RT_lb = t->response_time;
+				t->inflated_wcet = t->response_time;
 				runnables.push_back(ro);
 				t->runnables.push_back(ro.id);
 
