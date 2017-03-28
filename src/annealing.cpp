@@ -115,13 +115,13 @@ static inline void ComputeAnySolution(Solution &s)
 {
 	int seed = std::chrono::system_clock::now().time_since_epoch().count();
 	std::default_random_engine generator(seed);
-	std::uniform_int_distribution<int> distribution(1, 2);
+	std::uniform_int_distribution<int> distribution(0, 3);
 	unsigned int position;
 
 	for (unsigned int i=0; i<s.size(); ++i) {
 		do {
 			position = distribution(generator);
-		} while (ram[position].available - s[i].bitLen < 0);
+		} while ((ram[position].available - s[i].bitLen < 0) || position == 2);
 
 		ram[position].available -= s[i].bitLen;
 		s[i].ram = static_cast<RAM_LOC>(1 << position);
@@ -134,7 +134,7 @@ static inline Solution ComputeNewSolutionHeavy(const Solution &s)
 	std::default_random_engine generator(seed);
 	std::uniform_int_distribution<int> dist_label(0, s.size()-1);
 	std::uniform_int_distribution<int> dist_ram(0, 4);
-	std::uniform_int_distribution<int> dist_noise(s.size() * 0.02, s.size() * 0.05);
+	std::uniform_int_distribution<int> dist_noise(s.size() * 0.02, s.size() * 0.1);
 	Solution newSol(s);
 	unsigned int p;
 	int64_t res;
@@ -171,14 +171,19 @@ static inline Solution ComputeNewSolutionLight(const Solution &s)
 	for (unsigned int i=0; i<noise; ++i) {
 		Label &L = newSol[dist_label(generator)];
 
-		if (L.ram == GRAM) {
+		/*if (L.ram == GRAM) {
 			do {
 				p = dist_ram(generator);
 				res = ram[p].available - L.bitLen;
 			} while (res < 0);
 		} else {
 			p = 4;
-		}
+		}*/
+
+		do {
+			p = dist_ram(generator);
+			res = ram[p].available - L.bitLen;
+		} while (res < 0);
 
 		ram[loc_to_id(L.ram)].available += L.bitLen;
 		L.ram = static_cast<RAM_LOC>(1 << p);
@@ -257,6 +262,7 @@ std::pair<Solution, double> annealing()
 	unsigned int max_I, max_E;
 
 	ComputeAnySolution(s);
+	printSolution(s);
 
 	s_opt = s;
 	c_opt = c = EvaluateSolution(s);
@@ -267,6 +273,8 @@ std::pair<Solution, double> annealing()
 
 		max_I = 0;
 		max_E = 0;
+
+		printSolution(s);
 
 		while ((max_I < MAX_I) && (max_E < MAX_E)) {
 
