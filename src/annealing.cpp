@@ -156,6 +156,51 @@ static inline Solution ComputeNewSolutionHeavy(const Solution &s)
 	return newSol;
 }
 
+static inline Solution ComputeNewSolutionMassive(const Solution &s)
+{
+	unsigned int seed = std::chrono::system_clock::now().time_since_epoch().count();
+	std::default_random_engine generator(seed);
+	std::uniform_int_distribution<int> dist_label(0, s.size()-1);
+	std::uniform_int_distribution<int> dist_ram(0, 3);
+	std::uniform_int_distribution<int> dist_noise(s.size() * 0.02, s.size() * 0.1);
+	Solution newSol(s);
+	unsigned int p;
+	int64_t res;
+	unsigned int noise = dist_noise(generator);
+
+	RAM_LOC src = static_cast<RAM_LOC>(1 << dist_ram(generator));
+	RAM_LOC dst;
+	do {
+		dst = static_cast<RAM_LOC>(1 << dist_ram(generator));
+	} while (dst == src);
+
+	unsigned int l;
+	Label appo;
+	for (unsigned int i=0; i<newSol.size(); ++i) {
+		l = dist_label(generator);
+		appo = newSol[i];
+		newSol[i] = newSol[l];
+		newSol[l] = appo;
+	}
+
+	for (Label &L : newSol) {
+		if (L.ram != src)
+			continue;
+		if (ram[loc_to_id(dst)].available - L.bitLen < 0)
+			break;
+
+		noise--;
+		L.ram = dst;
+		ram[loc_to_id(dst)].available -= L.bitLen;
+		ram[loc_to_id(src)].available += L.bitLen;
+
+		if (noise == 0)
+			break;
+	}
+
+	return newSol;
+}
+
 static inline Solution ComputeNewSolutionLight(const Solution &s)
 {
 	int seed = std::chrono::system_clock::now().time_since_epoch().count();
@@ -248,21 +293,23 @@ inline void new_optimal_solution_found(const T &v, const Solution &s)
 	printSolution(s);
 
 	//std::time_t now = std::time(NULL);
-	//cout << "\t" << std::ctime(&now) << endl;
+	//cout << "\t" << std::ctime(&now);
+
+	cout << endl;
 }
 
 std::pair<Solution, double> annealing()
 {
 	unsigned int seed = std::chrono::system_clock::now().time_since_epoch().count();
 	std::default_random_engine generator(seed);
-	std::uniform_int_distribution<int> dist_eval(0, 1);
+	std::uniform_int_distribution<int> dist_eval(0, 100);
 	Solution s(labels), s_new, s_opt;
 	double   c, c_new, c_opt;
 	double dc;
 	unsigned int max_I, max_E;
+	int new_sol_chooser;
 
 	ComputeAnySolution(s);
-	printSolution(s);
 
 	s_opt = s;
 	c_opt = c = EvaluateSolution(s);
@@ -274,11 +321,12 @@ std::pair<Solution, double> annealing()
 		max_I = 0;
 		max_E = 0;
 
-		printSolution(s);
-
 		while ((max_I < MAX_I) && (max_E < MAX_E)) {
 
-			if (dist_eval(generator))
+			new_sol_chooser = dist_eval(generator);
+			if (new_sol_chooser < 5)
+				s_new = ComputeNewSolutionMassive(s);
+			else if (new_sol_chooser < 15)
 				s_new = ComputeNewSolutionHeavy(s);
 			else
 				s_new = ComputeNewSolutionLight(s);
