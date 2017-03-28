@@ -59,7 +59,7 @@ void copy_in_newstruct(void)
 				ro.name = ri->getName();
 
 				// TODO
-				ro.exec_time = scaling_factor*ri->getLowerBound();
+				ro.exec_time = scaling_factor*ri->getMean();
 
 				for (int li : ri->labelsRead_list) {
 					ro.labels_r.push_back(li);
@@ -100,6 +100,7 @@ void copy_in_newstruct(void)
 	for (int i = 0; i<4; i++)
 		std::sort(CPU[i].begin(), CPU[i].end(),
 			[](const Task &a, const Task &b) { return a.prio > b.prio; });
+
 
 
 	for (EventChains2* ei : eventChains) {

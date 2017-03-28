@@ -115,7 +115,7 @@ static inline void ComputeAnySolution(Solution &s)
 {
 	int seed = std::chrono::system_clock::now().time_since_epoch().count();
 	std::default_random_engine generator(seed);
-	std::uniform_int_distribution<int> distribution(4, 4);
+	std::uniform_int_distribution<int> distribution(0, 4);
 	unsigned int position;
 
 	for (unsigned int i=0; i<s.size(); ++i) {
@@ -134,7 +134,7 @@ static inline Solution ComputeNewSolutionHeavy(const Solution &s)
 	std::default_random_engine generator(seed);
 	std::uniform_int_distribution<int> dist_label(0, s.size()-1);
 	std::uniform_int_distribution<int> dist_ram(0, 4);
-	std::uniform_int_distribution<int> dist_noise(s.size() * 0.01, s.size() * 0.05);
+	std::uniform_int_distribution<int> dist_noise(s.size() * 0.02, s.size() * 0.05);
 	Solution newSol(s);
 	unsigned int p;
 	int64_t res;
@@ -162,7 +162,7 @@ static inline Solution ComputeNewSolutionLight(const Solution &s)
 	std::default_random_engine generator(seed);
 	std::uniform_int_distribution<int> dist_label(0, s.size()-1);
 	std::uniform_int_distribution<int> dist_ram(0, 3);
-	std::uniform_int_distribution<int> dist_noise(1, 10);
+	std::uniform_int_distribution<int> dist_noise(1, 20);
 	Solution newSol(s);
 	unsigned int p;
 	int64_t res;
@@ -218,9 +218,9 @@ static inline double EvaluateSolution(const Solution &s)
 	double ret;
 
 	compute_coremap(s);
-	update_wcets(s);
-	computeResponseTime(s);
-	ret = min_slack(s);
+	//update_wcets(s);
+	ret = computeResponseTime(s);
+	//ret = min_slack(s);
 	//cout << "Minimum slack found: " << ret << endl;
 
 	return -ret;

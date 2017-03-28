@@ -107,7 +107,7 @@ void parse_XMLmodel(void)
   // read all labels
 
   int g_label_count = countSiblingElements(pLabelElement_first, "labels");
-  cout << "g_label_count = " << g_label_count << endl;
+  //cout << "g_label_count = " << g_label_count << endl;
   labelList.reserve(g_label_count);
 
   XMLElement *pLabelElement = pLabelElement_first;
@@ -159,19 +159,19 @@ void parse_XMLmodel(void)
     const char *task_preemption = pTaskElement->Attribute("preemption");
     const char *task_mTActLimit = pTaskElement->Attribute("multipleTaskActivationLimit");
 
-    cout << "name = " << task_name << " priority = " << task_priority << " stimuli = " << task_stimuli << endl;
+    //cout << "name = " << task_name << " priority = " << task_priority << " stimuli = " << task_stimuli << endl;
 
     vector<string> tmp_tokens;
     Tokenize(string(task_stimuli), tmp_tokens, string("_"));
 
-    if(tmp_tokens.size() < 3)
+  /*  if(tmp_tokens.size() < 3)
       cout << "0 = " << tmp_tokens[0] << " "
            << "1 = " << tmp_tokens[1] << endl;
     else
       cout << "0 = " << tmp_tokens[0] << " "
            << "1 = " << tmp_tokens[1] << " "
            << "2 = " << tmp_tokens[2] << " "
-           << "3 = " << tmp_tokens[3] << " " << endl;
+          << "3 = " << tmp_tokens[3] << " " << endl;*/
 
     Task2 *task = new Task2();
 
@@ -194,7 +194,7 @@ void parse_XMLmodel(void)
     }
     else
     {
-      cout << "tmp_token[0] == " << tmp_tokens[0] << ", quit!" << endl;
+		cout << "tmp_token[0] == " << tmp_tokens[0] << ", quit!" << endl;
       return;
     }
 
@@ -253,7 +253,7 @@ void parse_XMLmodel(void)
 
         if(runnable_name == g_runnable_name)
         {
-          cout << "runnable " << runnable_name << " found!!!" << endl;
+          //cout << "runnable " << runnable_name << " found!!!" << endl;
 
           //scorri tutti i runnableItem (gli accessi alle label)
           XMLElement *prunnableItemsElement = pRunnableElement->FirstChildElement();
@@ -293,7 +293,7 @@ void parse_XMLmodel(void)
                 labelList[label_id]->runnablesWrite_list.push_back(runnable);
               }
 
-              cout << "\t" << label_name << " " << label_id << " " << access << endl;
+              //cout << "\t" << label_name << " " << label_id << " " << access << endl;
             }
             else // RunnableInstruction
             {
@@ -312,7 +312,7 @@ void parse_XMLmodel(void)
 
               runnable->setDistribParams(cycles2us(lowerBound), cycles2us(upperBound), pRemainPromille, cycles2us(mean));
 
-              cout << "\tlowerBound = " << lowerBound << " upperBound = " << upperBound << " pRemainPromille = " << pRemainPromille << " mean = " << mean << endl;
+              //cout << "\tlowerBound = " << lowerBound << " upperBound = " << upperBound << " pRemainPromille = " << pRemainPromille << " mean = " << mean << endl;
             }
             prunnableItemsElement = prunnableItemsElement->NextSiblingElement("runnableItems");
           }
@@ -326,7 +326,7 @@ void parse_XMLmodel(void)
         g_runnables_count++;
         pRunnableElement = pRunnableElement->NextSiblingElement("runnables");
       }
-      cout << "g_runnables_count = " << g_runnables_count << endl;
+     // cout << "g_runnables_count = " << g_runnables_count << endl;
       if(!name_found)
       {
         cout << "runnable_name " << runnable_name << " NOT  found! quit." << endl;
@@ -373,7 +373,7 @@ void parse_XMLmodel(void)
     string task_name = firstToken(taskAllocationElement->Attribute("task"), "?");
     int cpu_core_n = atoi(&NthToken(taskAllocationElement->Attribute("scheduler"), "_", 1)[4]);
 
-    cout << task_name << "\t->\tCPU_CORE[ " << cpu_core_n << " ]" << endl;
+    //cout << task_name << "\t->\tCPU_CORE[ " << cpu_core_n << " ]" << endl;
 
     //task_name a task_pointer
     CPU_CORES[cpu_core_n].push_back(taskName_taskP[task_name]);
@@ -401,7 +401,7 @@ void parse_XMLmodel(void)
 
 	  int label_id = atoi(NthToken(label_name, "_", 1).c_str());
 
-	  cout << label_name << "\t->\tMEMORY[ " << ram_loc << " ]" << endl;
+	 // cout << label_name << "\t->\tMEMORY[ " << ram_loc << " ]" << endl;
 
 	  //store ram name
 	  labelList[label_id]->setRamLoc(ram_loc);
@@ -431,7 +431,7 @@ void parse_XMLmodel(void)
     string runnable_stimulus_name = FirsToken_AfterStr(stimulus, "?", "_");
     string runnable_response_name = FirsToken_AfterStr(response, "?", "_");
 
-    cout << "eventChain = " << evtc_name << " stimulus = " << runnable_stimulus_name << " response = " << runnable_response_name << endl;
+    //cout << "eventChain = " << evtc_name << " stimulus = " << runnable_stimulus_name << " response = " << runnable_response_name << endl;
 
     EventChains2 *evtc = new EventChains2();
     evtc->runnable_stimulus = runnableName_runnableP[runnable_stimulus_name];
@@ -458,7 +458,7 @@ void parse_XMLmodel(void)
       label_wr_id = atoi(NthToken(label_wr, "_", 2).c_str());
       evtc_elem->label_wr = labelList[label_wr_id];
 
-      cout << "\tWR_Label_" << label_wr_id << " stimulus = " << evtc_elem->runnable_stimulus->getName() << " response = " << evtc_elem->runnable_response->getName() << endl;
+     // cout << "\tWR_Label_" << label_wr_id << " stimulus = " << evtc_elem->runnable_stimulus->getName() << " response = " << evtc_elem->runnable_response->getName() << endl;
       evtc->eventChains_elems.push_back(evtc_elem);
       psegmentElement = psegmentElement->NextSiblingElement("segments");
 
@@ -508,7 +508,7 @@ void parse_XMLmodel(void)
     else deadline = static_cast<int64_t>(req_limit);
 
 
-    cout << "deadline of task " << task_name << " = " << deadline << endl;
+    //cout << "deadline of task " << task_name << " = " << deadline << endl;
 
     taskName_taskP[task_name]->setDeadline(deadline); // set deadline of relative task
 

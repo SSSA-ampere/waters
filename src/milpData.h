@@ -60,8 +60,6 @@ struct Task { // TODO inserire periodico o ISR
 	double wcet;
 	double inflated_wcet;
 	double exec_time;
-	double blocking_time;
-	double access_time;
 	uint64_t interarrival_max;
 	uint64_t interarrival_min;
 	std::vector<unsigned int> runnables;

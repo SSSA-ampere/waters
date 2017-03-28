@@ -145,6 +145,10 @@ double computeBlockingTime(const std::vector<Label> &s, const Task &k, double t)
 		if (i != k.cpu_id) {
 			// foreach core different from i-th core
 
+			for (unsigned int m = 0; m < 5; ++m) {
+				crosscore_acc[m] = 0;
+			}
+
 			for (unsigned int j = 0; j < CPU[i].size(); ++j) {
 				// foreach task
 				Task &task_ij = CPU[i].at(j);
@@ -179,10 +183,12 @@ double computeBlockingTime(const std::vector<Label> &s, const Task &k, double t)
 }
 
 
-void computeResponseTime(const std::vector<Label> &s)
+double computeResponseTime(const std::vector<Label> &s)
 {
 	double Rij, Rij_old;
 	double Rij_instr, Rij_acc, Rij_block;
+	double slack;
+	double min_slack_normalized = std::numeric_limits<double>::max();
 
 	for (unsigned int i = 0; i < 4; ++i) {
 		// foreach core
@@ -203,8 +209,13 @@ void computeResponseTime(const std::vector<Label> &s)
 				task_ij.response_time1 = Rij;
 
 			} while (Rij > Rij_old);
+
+			slack = (task_ij.deadline - task_ij.response_time1) / task_ij.deadline;
+			if (min_slack_normalized > slack)
+				min_slack_normalized = slack;
 		}
 	}
+	return min_slack_normalized;
 }
 
 static inline double Ii_lb(const Task &k, double t)

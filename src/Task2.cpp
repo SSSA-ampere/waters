@@ -79,7 +79,7 @@ void Task2::setInterArrivalTime(int64_t min, int64_t max)
     minInterArrivalTime = min;
     maxInterArrivalTime = max;
 
-    printf("Task2->setInterArrivaltime min=%lldus max=%lldus\n", (long long)min, (long long)max);
+   // printf("Task2->setInterArrivaltime min=%lldus max=%lldus\n", (long long)min, (long long)max);
 }
 
 int64_t Task2::getMinInterArrivalTime()
@@ -95,7 +95,7 @@ int64_t Task2::getMaxInterArrivalTime()
 void Task2::setMultipleActivationTaskLimit(int matl)
 {
     multipleActivationTaskLimit = matl;
-    printf("Task2->setMultipleActivationTaskLimit = %d\n", matl);
+  //  printf("Task2->setMultipleActivationTaskLimit = %d\n", matl);
 }
 
 int Task2::getMultipleActivationTaskLimit()
