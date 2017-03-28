@@ -115,7 +115,7 @@ static inline void ComputeAnySolution(Solution &s)
 {
 	int seed = std::chrono::system_clock::now().time_since_epoch().count();
 	std::default_random_engine generator(seed);
-	std::uniform_int_distribution<int> distribution(0, 4);
+	std::uniform_int_distribution<int> distribution(1, 2);
 	unsigned int position;
 
 	for (unsigned int i=0; i<s.size(); ++i) {

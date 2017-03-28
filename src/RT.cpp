@@ -129,8 +129,8 @@ double computeBlockingTime(const std::vector<Label> &s, const Task &k, double t)
 {
 	uint64_t crosscore_acc[5] = { 0,0,0,0,0 };
 	uint64_t self_acc[5] = { 0,0,0,0,0 };
-	uint64_t other_cores_acc[5] = { 0,0,0,0,0 };
-	uint64_t tot_acc[5] = { 0,0,0,0,0 };
+	uint64_t job_acc[5] = { 0,0,0,0,0 };
+	uint64_t core_acc[5] = { 0,0,0,0,0 };
 	double block_time = 0;
 	uint64_t job_act;
 	double Rij;
@@ -147,6 +147,7 @@ double computeBlockingTime(const std::vector<Label> &s, const Task &k, double t)
 
 			for (unsigned int m = 0; m < 5; ++m) {
 				crosscore_acc[m] = 0;
+				core_acc[m] = 0;
 			}
 
 			for (unsigned int j = 0; j < CPU[i].size(); ++j) {
@@ -158,18 +159,18 @@ double computeBlockingTime(const std::vector<Label> &s, const Task &k, double t)
 				job_act = static_cast<uint64_t>(ceil(static_cast<double>((Rij + t) / task_ij.period)));
 
 				// compute number of job accesses to memory
-				jobAccessToMem(task_ij, s, other_cores_acc);
+				jobAccessToMem(task_ij, s, job_acc);
 
 				for (unsigned int m = 0; m < 5; m++) {
-					tot_acc[m] += job_act * other_cores_acc[m];
+					core_acc[m] += job_act * job_acc[m];
 					if (m != i)
-						crosscore_acc[m] += job_act * other_cores_acc[m];
-					other_cores_acc[m] = 0;
+						crosscore_acc[m] += job_act * job_acc[m];
+					job_acc[m] = 0;
 				}
 			}
 
 			for (unsigned int m = 0; m < 5; m++) {
-				unsigned int min_acc = self_acc[m] < tot_acc[m] ? self_acc[m] : tot_acc[m];
+				unsigned int min_acc = self_acc[m] < core_acc[m] ? self_acc[m] : core_acc[m];
 
 				if (m != i)
 					block_time += cycles2us(static_cast<uint64_t>(9 * min_acc));
