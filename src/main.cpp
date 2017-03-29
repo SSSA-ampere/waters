@@ -13,6 +13,7 @@
 #include "copy_in_newstruct.h"
 
 #include "annealing.h"
+#include "genetic.h"
 #include "RT.h"
 
 #include <vector>
@@ -544,8 +545,9 @@ int main()
 
   compute_RT_lb();
 
-  // Assunzione: priority value alto, priotita` alta
-  annealing_run();
+  // Assunzione: priority value alto, priorita` alta
+  genetic_run();
+ // annealing_run();
 
   print_tasks_info();
 

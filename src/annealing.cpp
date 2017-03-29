@@ -17,7 +17,7 @@ const double MIN_T = 0.001;
 const double COOLING_FACTOR = 0.98;
 
 const unsigned int MAX_E = 100000;
-const unsigned int MAX_I = 10000;
+const unsigned int MAX_I = 2000;
 
 const int ELEM_MIN = GRAM;
 const int ELEM_MAX = LRAM_3;
@@ -115,13 +115,13 @@ static inline void ComputeAnySolution(Solution &s)
 {
 	int seed = std::chrono::system_clock::now().time_since_epoch().count();
 	std::default_random_engine generator(seed);
-	std::uniform_int_distribution<int> distribution(0, 3);
+	std::uniform_int_distribution<int> distribution(0, 4);
 	unsigned int position;
 
 	for (unsigned int i=0; i<s.size(); ++i) {
 		do {
 			position = distribution(generator);
-		} while ((ram[position].available - s[i].bitLen < 0) || position == 2);
+		} while (ram[position].available - s[i].bitLen < 0);
 
 		ram[position].available -= s[i].bitLen;
 		s[i].ram = static_cast<RAM_LOC>(1 << position);
@@ -134,7 +134,7 @@ static inline Solution ComputeNewSolutionHeavy(const Solution &s)
 	std::default_random_engine generator(seed);
 	std::uniform_int_distribution<int> dist_label(0, s.size()-1);
 	std::uniform_int_distribution<int> dist_ram(0, 4);
-	std::uniform_int_distribution<int> dist_noise(s.size() * 0.02, s.size() * 0.1);
+	std::uniform_int_distribution<int> dist_noise(s.size() * 0.01, s.size() * 0.03);
 	Solution newSol(s);
 	unsigned int p;
 	int64_t res;
@@ -161,17 +161,19 @@ static inline Solution ComputeNewSolutionMassive(const Solution &s)
 	unsigned int seed = std::chrono::system_clock::now().time_since_epoch().count();
 	std::default_random_engine generator(seed);
 	std::uniform_int_distribution<int> dist_label(0, s.size()-1);
-	std::uniform_int_distribution<int> dist_ram(0, 3);
-	std::uniform_int_distribution<int> dist_noise(s.size() * 0.02, s.size() * 0.1);
+	std::uniform_int_distribution<int> dist_ram_src(0, 4);
+	std::uniform_int_distribution<int> dist_ram_dst(0, 4);
+
+	std::uniform_int_distribution<int> dist_noise(s.size() * 0.05, s.size() * 0.3);
 	Solution newSol(s);
 	unsigned int p;
 	int64_t res;
 	unsigned int noise = dist_noise(generator);
 
-	RAM_LOC src = static_cast<RAM_LOC>(1 << dist_ram(generator));
+	RAM_LOC src = static_cast<RAM_LOC>(1 << dist_ram_src(generator));
 	RAM_LOC dst;
 	do {
-		dst = static_cast<RAM_LOC>(1 << dist_ram(generator));
+		dst = static_cast<RAM_LOC>(1 << dist_ram_dst(generator));
 	} while (dst == src);
 
 	unsigned int l;
@@ -326,7 +328,7 @@ std::pair<Solution, double> annealing()
 			new_sol_chooser = dist_eval(generator);
 			if (new_sol_chooser < 5)
 				s_new = ComputeNewSolutionMassive(s);
-			else if (new_sol_chooser < 15)
+			else if (new_sol_chooser < 10)
 				s_new = ComputeNewSolutionHeavy(s);
 			else
 				s_new = ComputeNewSolutionLight(s);
