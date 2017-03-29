@@ -216,7 +216,7 @@ double computeResponseTime(const std::vector<Label> &s)
 				min_slack_normalized = slack;
 		}
 	}
-	return min_slack_normalized;
+	return -min_slack_normalized;
 }
 
 static inline double Ii_lb(const Task &k, double t)

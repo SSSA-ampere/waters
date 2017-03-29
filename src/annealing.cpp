@@ -26,11 +26,6 @@ const unsigned int MEM_NUM = 5;
 
 /*--------------------------*/
 
-typedef RAM_LOC Element;
-typedef vector<Label> Solution;
-
-/*--------------------------*/
-
 uint8_t coremap[MEM_NUM];
 
 /*-------------------------*/
@@ -97,7 +92,7 @@ static inline double computeInterf(const Runnable &r, const std::vector<Label> &
 	return cycles2us(interf);
 }
 
-static void printSolution(const Solution &s)
+void printSolution(const Solution &s)
 {
 	unsigned int labels_in_memory[5];
 
@@ -203,13 +198,13 @@ static inline Solution ComputeNewSolutionMassive(const Solution &s)
 	return newSol;
 }
 
-static inline Solution ComputeNewSolutionLight(const Solution &s)
+Solution ComputeNewSolutionLight(const Solution &s, unsigned int maximum)
 {
 	int seed = std::chrono::system_clock::now().time_since_epoch().count();
 	std::default_random_engine generator(seed);
 	std::uniform_int_distribution<int> dist_label(0, s.size()-1);
-	std::uniform_int_distribution<int> dist_ram(0, 3);
-	std::uniform_int_distribution<int> dist_noise(1, 20);
+	std::uniform_int_distribution<int> dist_ram(0, 4);
+	std::uniform_int_distribution<int> dist_noise(1, maximum);
 	Solution newSol(s);
 	unsigned int p;
 	int64_t res;
@@ -286,18 +281,6 @@ static inline bool ExpProb(double dc, double T)
 	double V = distribution(generator);
 
 	return V < P(dc, T);
-}
-
-template<class T>
-inline void new_optimal_solution_found(const T &v, const Solution &s)
-{
-	cout << "------) Optimal solution: " << v << "\t -- \t";
-	printSolution(s);
-
-	//std::time_t now = std::time(NULL);
-	//cout << "\t" << std::ctime(&now);
-
-	cout << endl;
 }
 
 std::pair<Solution, double> annealing()
