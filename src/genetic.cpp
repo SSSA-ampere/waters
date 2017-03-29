@@ -192,8 +192,9 @@ std::pair<Solution, double> genetic()
 			s_opt = s[0];
 			new_optimal_solution_found(fit_opt, s_opt);
 			solution_to_csv(filename, s_opt, fit_opt);
+		} else {
+			cout << "." << endl;
 		}
-		cout << "." << endl;
 	} while (termination != 0);
 
 	return std::make_pair(s_opt, fit_opt);
