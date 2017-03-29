@@ -11,6 +11,7 @@
 #include <random>
 #include <chrono>
 #include <algorithm>
+#include <ctime>
 
 using namespace std;
 
@@ -156,6 +157,16 @@ std::pair<Solution, double> genetic()
 	std::uniform_int_distribution<int> dist_eval(0, pop);
 	int termination = 1;
 
+	time_t now;
+	struct tm newyear;
+	time(&now);  /* get current time; same as: now = time(NULL)  */
+	newyear = *localtime(&now);
+	newyear.tm_hour = 0; newyear.tm_min = 0; newyear.tm_sec = 0;
+	newyear.tm_mon = 0;  newyear.tm_mday = 1;
+	long int seconds = static_cast<long int>(difftime(now,mktime(&newyear)));
+
+	string filename = string("result_") + std::to_string(seconds) + string(".csv");
+
 	Solution s[pop], s_opt;
 	double fit[pop], fit_opt;
 
@@ -166,7 +177,7 @@ std::pair<Solution, double> genetic()
 	s_opt = s[0];
 
 	new_optimal_solution_found(fit_opt, s_opt);
-
+	solution_to_csv(filename, s_opt, fit_opt);
 	do {
 		//selectParents();
 		//performReproduction();
@@ -180,6 +191,7 @@ std::pair<Solution, double> genetic()
 			fit_opt = fit[0];
 			s_opt = s[0];
 			new_optimal_solution_found(fit_opt, s_opt);
+			solution_to_csv(filename, s_opt, fit_opt);
 		}
 		cout << "." << endl;
 	} while (termination != 0);

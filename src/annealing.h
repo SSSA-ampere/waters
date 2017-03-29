@@ -25,6 +25,7 @@ static inline int loc_to_id(uint8_t b)
 
 Solution ComputeNewSolutionLight(const Solution &s, unsigned int maximum = 20);
 void printSolution(const Solution &s);
+void solution_to_csv(const std::string &filename, const Solution &s, double cost);
 
 template<class T>
 inline void new_optimal_solution_found(const T &v, const Solution &s)

@@ -2,6 +2,7 @@
 #include "milpData.h"
 #include "RT.h"
 
+#include <fstream>
 #include <vector>
 #include <cmath>
 #include <iostream>
@@ -196,6 +197,23 @@ static inline Solution ComputeNewSolutionMassive(const Solution &s)
 	}
 
 	return newSol;
+}
+
+void solution_to_csv(const string &filename, const Solution &s, double cost)
+{
+	ofstream file(filename, std::ofstream::app);
+	if(!file.is_open()) {
+		  std::perror("File opening failed");
+			exit(-1);
+	}
+
+	file << cost;
+	for (Label const &v : s) {
+		file << "," << loc_to_id(v.ram);
+	}
+	file << endl;
+
+	file.close();
 }
 
 Solution ComputeNewSolutionLight(const Solution &s, unsigned int maximum)
