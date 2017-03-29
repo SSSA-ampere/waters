@@ -7,6 +7,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 import numpy as np
 
+MAX_COST = 0
 OLDCOST = 99999
 
 fig = plt.figure()
@@ -20,6 +21,10 @@ with open(filename, 'rb') as csvfile:
 	spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
 	for row in spamreader:
 		COST = float(row[0]) * 5000
+		
+		if MAX_COST < COST :
+                    MAX_COST = COST
+		
 		RAM_OCCUPATION=[0,0,0,0,0]
 		
 		del row[0]
@@ -34,9 +39,19 @@ with open(filename, 'rb') as csvfile:
 		#ys = np.random.rand(6)
 		ys = [COST] + RAM_OCCUPATION
 		
+		
+		cs = [  [COST/MAX_COST, 0, 0, 1],
+                        [0, RAM_OCCUPATION[0]/MAX_COST, 0, 1],
+                        [0, 0, RAM_OCCUPATION[1]/MAX_COST, 1],
+                        [RAM_OCCUPATION[2]/MAX_COST, RAM_OCCUPATION[2]/MAX_COST, 0, 1],
+                        [0, RAM_OCCUPATION[3]/MAX_COST, RAM_OCCUPATION[3]/MAX_COST, 1],
+                        [COST/MAX_COST, 0, 0, 1]  ]
+		
+		print cs
+		
 		print ys
 		
-		ax.bar(xs, ys, zs=counter, zdir='y', alpha=1)
+		ax.bar(xs, ys, zs=counter, zdir='y', color=cs, alpha=1)
 		counter = counter + 1
 		
 		if COST > OLDCOST :
