@@ -76,9 +76,9 @@ Solution ComputeNewSolutionLight(const Solution &s, unsigned int maximum)
 	return newSol;
 }
 
-void performMutation(Solution s[], double min, double max)
+void performMutation(Solution s[], unsigned int start, unsigned int end)
 {
-	for (unsigned int p = min * pop; p < max * pop; ++p) {
+	for (unsigned int p = start; p < end; ++p) {
 		s[p] = ComputeNewSolutionLight(s[p], 0.1 * pop);
 	}
 }
@@ -90,7 +90,7 @@ Solution crossover(const Solution &a, const Solution &b)
 	std::uniform_int_distribution<int> split_dist(0, a.size() - 1);
 	Solution newSol;
 	newSol.resize(0);
-	const unsigned int splits_size = 100;
+	const unsigned int splits_size = 200;
 	std::vector<unsigned int> splits;
 
 	for (unsigned int i = 0; i<splits_size; ++i)
@@ -118,13 +118,13 @@ Solution crossover(const Solution &a, const Solution &b)
 	return newSol;
 }
 
-void performReproduction(Solution s[], double min, double max, double sons)
+void performReproduction(Solution s[], unsigned int start, unsigned int end, unsigned int sons)
 {
 	int seed = std::chrono::system_clock::now().time_since_epoch().count();
 	std::default_random_engine generator(seed);
-	std::uniform_int_distribution<int> parents_dist(pop * min, pop * max);
+	std::uniform_int_distribution<int> parents_dist(start, end);
 
-	for (unsigned int p = 0; p < pop * sons; ++p) {
+	for (unsigned int p = 0; p < sons; ++p) {
 
 		int father = parents_dist(generator);
 		int mother;
@@ -136,12 +136,8 @@ void performReproduction(Solution s[], double min, double max, double sons)
 	}
 }
 
-void performMitosis(Solution s[], double from, double to, double dest)
+void performMitosis(Solution s[], unsigned int start, unsigned int end, unsigned int offset)
 {
-	unsigned int start = pop * from;
-	unsigned int end = pop * to;
-	unsigned int offset = pop * dest;
-
 	for (unsigned int p = start; p < end; ++p)
 		s[offset + p] = s[start + p];
 }
@@ -187,14 +183,24 @@ std::pair<Solution, double> genetic()
 	std::uniform_int_distribution<int> dist_eval(0, pop);
 	int termination = 1;
 
-	const double TO_CLONE = 0.05;
-	const double TO_CLONE_TO = 0.65;
+	const double TO_CLONE_F = 0.05;
+	const double TO_CLONE_TO_F = 0.80;
 
-	const double TO_REPRODUCE = 0.15;
-	const double TO_REPRODUCE_CHILDREN = TO_REPRODUCE;
+	const double TO_REPRODUCE_F = 0.15;
+	const double TO_REPRODUCE_CHILDREN_F = TO_REPRODUCE_F;
 
-	const double TO_MUTATE = 1 - TO_CLONE - TO_REPRODUCE_CHILDREN;
-	const double TO_MUTATE_FROM = TO_CLONE;
+	const double TO_MUTATE_F = 1 - TO_CLONE_F - TO_REPRODUCE_CHILDREN_F;
+	const double TO_MUTATE_FROM_F = TO_CLONE_F;
+
+
+	const unsigned int TO_CLONE = TO_CLONE_F * pop;
+	const unsigned int TO_CLONE_TO = TO_CLONE_TO_F * pop;
+
+	const unsigned int TO_REPRODUCE = TO_REPRODUCE_F * pop;
+	const unsigned int TO_REPRODUCE_CHILDREN = TO_REPRODUCE_CHILDREN_F * pop;
+
+	const unsigned int TO_MUTATE = TO_MUTATE_F * pop;
+	const unsigned int TO_MUTATE_FROM = TO_MUTATE_FROM_F * pop;
 
 
 	time_t now;

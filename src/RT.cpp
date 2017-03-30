@@ -188,8 +188,9 @@ double computeResponseTime(const std::vector<Label> &s)
 {
 	double Rij, Rij_old;
 	double Rij_instr, Rij_acc, Rij_block;
-	double slack;
-	double min_slack_normalized = std::numeric_limits<double>::max();
+	double rt_normalized;
+	double max_rt_normalized = 0;
+	string task_name;
 
 	for (unsigned int i = 0; i < 4; ++i) {
 		// foreach core
@@ -209,14 +210,17 @@ double computeResponseTime(const std::vector<Label> &s)
 
 				task_ij.response_time1 = Rij;
 
-			} while (Rij > Rij_old);
+			} while (Rij != Rij_old);
 
-			slack = (task_ij.deadline - task_ij.response_time1) / task_ij.deadline;
-			if (min_slack_normalized > slack)
-				min_slack_normalized = slack;
+			rt_normalized = task_ij.response_time1 / task_ij.deadline;
+			if (max_rt_normalized < rt_normalized) {
+				max_rt_normalized = rt_normalized;
+				task_name = task_ij.name;
+			}
 		}
 	}
-	return -min_slack_normalized;
+	//cout << task_name << " has the worst response time" << endl;
+	return max_rt_normalized;
 }
 
 static inline double Ii_lb(const Task &k, double t)
