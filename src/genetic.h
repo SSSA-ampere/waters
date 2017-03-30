@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include "milpData.h"
 
-#define pop 200
+#define pop 500
 
 void genetic_run();
 

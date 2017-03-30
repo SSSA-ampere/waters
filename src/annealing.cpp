@@ -216,13 +216,13 @@ void solution_to_csv(const string &filename, const Solution &s, double cost)
 	file.close();
 }
 
-Solution ComputeNewSolutionLight(const Solution &s, unsigned int maximum)
+Solution ComputeNewSolutionLight(const Solution &s)
 {
 	int seed = std::chrono::system_clock::now().time_since_epoch().count();
 	std::default_random_engine generator(seed);
 	std::uniform_int_distribution<int> dist_label(0, s.size()-1);
 	std::uniform_int_distribution<int> dist_ram(0, 4);
-	std::uniform_int_distribution<int> dist_noise(1, maximum);
+	std::uniform_int_distribution<int> dist_noise(1, 100);
 	Solution newSol(s);
 	unsigned int p;
 	int64_t res;

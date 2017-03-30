@@ -56,6 +56,26 @@ void evaluatePopulation(Solution s[], double fit[])
 	sortPopulation(s, fit);
 }
 
+Solution ComputeNewSolutionLight(const Solution &s, unsigned int maximum)
+{
+	int seed = std::chrono::system_clock::now().time_since_epoch().count();
+	std::default_random_engine generator(seed);
+	std::uniform_int_distribution<int> dist_label(0, s.size()-1);
+	std::uniform_int_distribution<int> dist_ram(0, 4);
+	std::uniform_int_distribution<int> dist_noise(1, maximum);
+	Solution newSol(s);
+	unsigned int p;
+	int64_t res;
+	unsigned int noise = dist_noise(generator);
+
+	for (unsigned int i=0; i<noise; ++i) {
+		p = dist_ram(generator);
+		newSol[dist_label(generator)].ram = static_cast<RAM_LOC>(1 << p);
+	}
+
+	return newSol;
+}
+
 void performMutation(Solution s[], double min, double max)
 {
 	for (unsigned int p = min * pop; p < max * pop; ++p) {
