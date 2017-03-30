@@ -47,11 +47,11 @@ with open(filename, 'rb') as csvfile:
                         [0, RAM_OCCUPATION[3]/MAX_COST, RAM_OCCUPATION[3]/MAX_COST, 1],
                         [COST/MAX_COST, 0, 0, 1]  ]
 		
-		print cs
+		#print cs
 		
 		print ys
 		
-		ax.bar(xs, ys, zs=counter, zdir='y', color=cs, alpha=1)
+		ax.bar(xs, ys, zs=counter, zdir='y', alpha=1)
 		counter = counter + 1
 		
 		if COST > OLDCOST :
