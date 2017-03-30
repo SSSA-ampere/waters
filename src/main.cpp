@@ -545,6 +545,11 @@ int main()
 
   compute_RT_lb();
 
+
+  double RT_init = computeResponseTime(labels);
+
+  new_optimal_solution_found(RT_init, labels);
+
   // Assunzione: priority value alto, priorita` alta
   genetic_run();
  // annealing_run();
