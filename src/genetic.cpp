@@ -118,13 +118,12 @@ void performReproduction(Solution s[], double min, double max, double sons)
 
 void performMitosis(Solution s[], double from, double to, double dest)
 {
-	int start = pop * from;
-	int end = pop * to;
-	int offset = pop * dest;
+	unsigned int start = pop * from;
+	unsigned int end = pop * to;
+	unsigned int offset = pop * dest;
 
-	for (unsigned int p = start; p < end; ++p) {
+	for (unsigned int p = start; p < end; ++p)
 		s[offset + p] = s[start + p];
-	}
 }
 
 void InitializePopulation(Solution s[])
