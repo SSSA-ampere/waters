@@ -33,8 +33,8 @@ inline void new_optimal_solution_found(const T &v, const Solution &s)
 	std::cout << "------) Optimal solution: " << v << "\t -- \t";
 	printSolution(s);
 
-	std::time_t now = std::time(NULL);
-	std::cout << "\t" << std::ctime(&now);
+	//std::time_t now = std::time(NULL);
+	//std::cout << "\t" << std::ctime(&now);
 
 	std::cout << std::endl;
 }

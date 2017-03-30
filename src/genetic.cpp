@@ -70,7 +70,7 @@ Solution crossover(const Solution &a, const Solution &b)
 	std::uniform_int_distribution<int> split_dist(0, a.size() - 1);
 	Solution newSol;
 	newSol.resize(0);
-	const unsigned int splits_size = 10;
+	const unsigned int splits_size = 100;
 	std::vector<unsigned int> splits;
 
 	for (unsigned int i = 0; i<splits_size; ++i)
@@ -120,7 +120,7 @@ void InitializePopulation(Solution s[])
 {
 	int seed = std::chrono::system_clock::now().time_since_epoch().count();
 	std::default_random_engine generator(seed);
-	std::uniform_int_distribution<int> distribution(0, 4);
+	std::uniform_int_distribution<int> distribution(0, 3);
 	unsigned int position;
 	RAM ram_temp;
 
@@ -181,8 +181,8 @@ std::pair<Solution, double> genetic()
 	do {
 		//selectParents();
 		//performReproduction();
-		performReproduction(s, 0, 0.15, 0.3);
-		performMutation(s, 0.1, 0.7);
+		performReproduction(s, 0, 0.15, 0.2);
+		performMutation(s, 0, 0.6);
 		//updatePopulation();
 
 		evaluatePopulation(s, fit);
