@@ -116,6 +116,17 @@ void performReproduction(Solution s[], double min, double max, double sons)
 	}
 }
 
+void performMitosis(Solution s[], double from, double to, double dest)
+{
+	int start = pop * from;
+	int end = pop * to;
+	int offset = pop * dest;
+
+	for (unsigned int p = start; p < end; ++p) {
+		s[offset + p] = s[start + p];
+	}
+}
+
 void InitializePopulation(Solution s[])
 {
 	int seed = std::chrono::system_clock::now().time_since_epoch().count();
@@ -157,6 +168,16 @@ std::pair<Solution, double> genetic()
 	std::uniform_int_distribution<int> dist_eval(0, pop);
 	int termination = 1;
 
+	const double TO_CLONE = 0.05;
+	const double TO_CLONE_TO = 0.65;
+
+	const double TO_REPRODUCE = 0.15;
+	const double TO_REPRODUCE_CHILDREN = TO_REPRODUCE;
+
+	const double TO_MUTATE = 1 - TO_CLONE - TO_REPRODUCE_CHILDREN;
+	const double TO_MUTATE_FROM = TO_CLONE;
+
+
 	time_t now;
 	struct tm newyear;
 	time(&now);  /* get current time; same as: now = time(NULL)  */
@@ -181,8 +202,9 @@ std::pair<Solution, double> genetic()
 	do {
 		//selectParents();
 		//performReproduction();
-		performReproduction(s, 0, 0.15, 0.2);
-		performMutation(s, 0, 0.6);
+		performMitosis(s, 0, TO_CLONE, TO_CLONE_TO);
+		performReproduction(s, 0, TO_REPRODUCE, TO_REPRODUCE_CHILDREN);
+		performMutation(s, TO_MUTATE_FROM, TO_MUTATE_FROM + TO_MUTATE);
 		//updatePopulation();
 
 		evaluatePopulation(s, fit);
