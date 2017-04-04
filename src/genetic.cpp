@@ -21,8 +21,6 @@ typedef std::vector<Label> Solution;
 
 void sortPopulation(Solution s[], double fit[])
 {
-	Solution appo;
-	double appo_d;
 	double min;
 	unsigned int index;
 
@@ -36,15 +34,10 @@ void sortPopulation(Solution s[], double fit[])
 				index = j;
 			}
 		}
-		appo_d = fit[index];
-		fit[index] = fit[i];
-		fit[i] = appo_d;
 
-		appo = s[index];
-		s[index] = s[i];
-		s[i] = appo;
+		std::swap(fit[index], fit[i]);
+		std::swap(s[index], s[i]);
 	}
-
 }
 
 void evaluatePopulation(Solution s[], double fit[])
@@ -64,13 +57,77 @@ Solution ComputeNewSolutionLight(const Solution &s, unsigned int maximum)
 	std::uniform_int_distribution<int> dist_ram(0, 4);
 	std::uniform_int_distribution<int> dist_noise(1, maximum);
 	Solution newSol(s);
-	unsigned int p;
-	int64_t res;
 	unsigned int noise = dist_noise(generator);
 
-	for (unsigned int i=0; i<noise; ++i) {
-		p = dist_ram(generator);
-		newSol[dist_label(generator)].ram = static_cast<RAM_LOC>(1 << p);
+	for (unsigned int i=0; i<noise; ++i)
+		newSol[dist_label(generator)].ram = static_cast<RAM_LOC>(1 << dist_ram(generator));
+
+	return newSol;
+}
+
+Solution ComputeNewSolutionRAM2RAM(const Solution &s, unsigned int maximum)
+{
+	int seed = std::chrono::system_clock::now().time_since_epoch().count();
+	std::default_random_engine generator(seed);
+	std::uniform_int_distribution<int> dist_ram(0, 4);
+	std::uniform_int_distribution<int> dist_noise(1, maximum);
+	Solution newSol(s);
+	unsigned int noise = dist_noise(generator);
+	RAM_LOC dst;
+	RAM_LOC src;
+
+	src = static_cast<RAM_LOC>(1 << dist_ram(generator));
+	do {
+		dst = static_cast<RAM_LOC>(1 << dist_ram(generator));
+	} while (dst == src);
+
+	std::vector<Label *> src_label;
+	std::vector<Label *> dst_label;
+
+	for (Label &l : newSol) {
+		if (l.ram == src)
+			src_label.push_back(&l);
+		else if (l.ram == dst)
+			dst_label.push_back(&l);
+	}
+
+	std::uniform_int_distribution<int> dist_label_src(0, src_label.size()-1);
+	std::uniform_int_distribution<int> dist_label_dst(0, dst_label.size()-1);
+
+	for (unsigned int i=0; i<noise && i<src_label.size()-1 && i<dst_label.size()-1; ++i)
+		std::swap(dst_label[dist_label_dst(generator)]->ram, src_label[dist_label_src(generator)]->ram);
+
+	return newSol;
+}
+
+Solution ComputeNewSolutionRAM2Others(const Solution &s, unsigned int maximum)
+{
+	int seed = std::chrono::system_clock::now().time_since_epoch().count();
+	std::default_random_engine generator(seed);
+	std::uniform_int_distribution<int> dist_ram(0, 4);
+	std::uniform_int_distribution<int> dist_noise(1, maximum);
+	Solution newSol(s);
+	unsigned int noise = dist_noise(generator);
+	RAM_LOC dst;
+	RAM_LOC src;
+
+	src = static_cast<RAM_LOC>(1 << dist_ram(generator));
+
+	std::vector<Label *> src_label;
+
+	for (Label &l : newSol) {
+		if (l.ram == src)
+			src_label.push_back(&l);
+	}
+
+	std::uniform_int_distribution<int> dist_label_src(0, src_label.size()-1);
+
+	for (unsigned int i=0; i<noise && i<src_label.size()-1; ++i) {
+		do {
+			dst = static_cast<RAM_LOC>(1 << dist_ram(generator));
+		} while (dst == src);
+
+		src_label[dist_label_src(generator)]->ram = dst;
 	}
 
 	return newSol;
@@ -78,8 +135,17 @@ Solution ComputeNewSolutionLight(const Solution &s, unsigned int maximum)
 
 void performMutation(Solution s[], unsigned int start, unsigned int end)
 {
+	int seed = std::chrono::system_clock::now().time_since_epoch().count();
+	std::default_random_engine generator(seed);
+	std::uniform_int_distribution<int> choose_mutation(0, 10);
+
 	for (unsigned int p = start; p < end; ++p) {
-		s[p] = ComputeNewSolutionLight(s[p], 0.1 * pop);
+		if (choose_mutation(generator) < 2)
+			s[p] = ComputeNewSolutionRAM2RAM(s[p], 50);
+		else if (choose_mutation(generator) < 5)
+			s[p] = ComputeNewSolutionRAM2Others(s[p], 50);
+		else
+			s[p] = ComputeNewSolutionLight(s[p], 50);
 	}
 }
 
@@ -146,7 +212,7 @@ void InitializePopulation(Solution s[])
 {
 	int seed = std::chrono::system_clock::now().time_since_epoch().count();
 	std::default_random_engine generator(seed);
-	std::uniform_int_distribution<int> distribution(0, 3);
+	std::uniform_int_distribution<int> distribution(0, 4);
 	unsigned int position;
 	RAM ram_temp;
 

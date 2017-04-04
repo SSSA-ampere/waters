@@ -8,6 +8,8 @@ set(MODEL_PATH
 #set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_BUILD_TYPE Release)
 
+set(CMAKE_CXX_FLAGS_RELEASE -Ofast)
+
 message("Model path: " ${MODEL_PATH})
 
 # Include dirs.

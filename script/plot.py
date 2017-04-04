@@ -117,11 +117,16 @@ p1.set_ylabel('Memory occupation')
 p1.legend()
 p1.grid()
 
+given_solution_result = 1.32025
 
 p2.plot(epoch, y2, 'k')
+p2.plot(epoch, [given_solution_result] * len(y2), 'r--')
+
+FIT_MIN = y2[len(y2) - 1] if y2[len(y2) - 1] < given_solution_result else given_solution_result
+FIT_MAX = y2[0] if y2[0] > given_solution_result else given_solution_result
 
 p2.set_xlim([0, epoch[len(epoch) - 1]])
-p2.set_ylim(y2[len(y2) - 1], y2[0])
+p2.set_ylim(FIT_MIN, FIT_MAX)
 p2.set_ylabel('Fitness')
 p2.set_xlabel('Epoch')
 p2.grid()
