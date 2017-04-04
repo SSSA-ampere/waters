@@ -138,15 +138,15 @@ Solution ComputeNewSolutionRAM2Others(const Solution &s, unsigned int maximum)
 void performMutation(Solution s[], unsigned int start, unsigned int end)
 {
     std::default_random_engine generator(rd());
-	std::uniform_int_distribution<int> choose_mutation(0, 10);
+    std::uniform_int_distribution<int> choose_mutation(0, 100);
 
 	for (unsigned int p = start; p < end; ++p) {
-		if (choose_mutation(generator) < 2)
-			s[p] = ComputeNewSolutionRAM2RAM(s[p], 50);
-		else if (choose_mutation(generator) < 5)
-			s[p] = ComputeNewSolutionRAM2Others(s[p], 50);
+        if (choose_mutation(generator) < 5)
+            s[p] = ComputeNewSolutionRAM2RAM(s[p], 100);
+        else if (choose_mutation(generator) < 15)
+            s[p] = ComputeNewSolutionRAM2Others(s[p], 100);
 		else
-			s[p] = ComputeNewSolutionLight(s[p], 50);
+            s[p] = ComputeNewSolutionLight(s[p], 200);
 	}
 }
 
