@@ -139,11 +139,13 @@ void performMutation(Solution s[], unsigned int start, unsigned int end)
 {
     std::default_random_engine generator(rd());
     std::uniform_int_distribution<int> choose_mutation(0, 100);
+    unsigned int mutation_kind;
 
 	for (unsigned int p = start; p < end; ++p) {
-        if (choose_mutation(generator) < 5)
+        mutation_kind = choose_mutation(generator);
+        if (mutation_kind < 5)
             s[p] = ComputeNewSolutionRAM2RAM(s[p], 100);
-        else if (choose_mutation(generator) < 15)
+        else if (mutation_kind < 15)
             s[p] = ComputeNewSolutionRAM2Others(s[p], 100);
 		else
             s[p] = ComputeNewSolutionLight(s[p], 500);
