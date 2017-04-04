@@ -26,12 +26,12 @@ static inline int loc_to_id(uint8_t b)
 }
 
 void printSolution(const Solution &s);
-void solution_to_csv(const std::string &filename, const Solution &s, double cost);
+void solution_to_csv(const std::string &filename, const Solution &s, double cost, uint64_t epoch);
 
 template<class T>
-inline void new_optimal_solution_found(const T &v, const Solution &s)
+inline void new_optimal_solution_found(const T &v, const Solution &s, uint64_t epoch = 0)
 {
-	std::cout << "------) Optimal solution: " << v << "\t -- \t";
+	std::cout << "------) Epoch: " << epoch << "\tOptimal solution: " << v << "\t -- \t";
 	printSolution(s);
 
 	std::time_t now = std::time(NULL);

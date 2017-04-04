@@ -182,6 +182,7 @@ std::pair<Solution, double> genetic()
 	std::default_random_engine generator(seed);
 	std::uniform_int_distribution<int> dist_eval(0, pop);
 	int termination = 1;
+	uint64_t epoch = 0;
 
 	const double TO_CLONE_F = 0.05;
 	const double TO_CLONE_TO_F = 0.80;
@@ -222,9 +223,10 @@ std::pair<Solution, double> genetic()
 	fit_opt = fit[0];
 	s_opt = s[0];
 
-	new_optimal_solution_found(fit_opt, s_opt);
-	solution_to_csv(filename, s_opt, fit_opt);
+	new_optimal_solution_found(fit_opt, s_opt, epoch);
+	solution_to_csv(filename, s_opt, fit_opt, epoch);
 	do {
+		++epoch;
 		//selectParents();
 		//performReproduction();
 		performMitosis(s, 0, TO_CLONE, TO_CLONE_TO);
@@ -237,8 +239,8 @@ std::pair<Solution, double> genetic()
 		if (fit_opt > fit[0]) {
 			fit_opt = fit[0];
 			s_opt = s[0];
-			new_optimal_solution_found(fit_opt, s_opt);
-			solution_to_csv(filename, s_opt, fit_opt);
+			new_optimal_solution_found(fit_opt, s_opt, epoch);
+			solution_to_csv(filename, s_opt, fit_opt, epoch);
 		} else {
 			cout << "." << endl;
 		}
