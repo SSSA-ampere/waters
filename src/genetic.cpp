@@ -144,9 +144,9 @@ void performMutation(Solution s[], unsigned int start, unsigned int end)
         if (choose_mutation(generator) < 5)
             s[p] = ComputeNewSolutionRAM2RAM(s[p], 100);
         else if (choose_mutation(generator) < 15)
-            s[p] = ComputeNewSolutionRAM2Others(s[p], 100);
+            s[p] = ComputeNewSolutionRAM2Others(s[p], 200);
 		else
-            s[p] = ComputeNewSolutionLight(s[p], 500);
+            s[p] = ComputeNewSolutionLight(s[p], 100);
 	}
 }
 
