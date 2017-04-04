@@ -20,6 +20,9 @@ filename = sys.argv[1]
 
 counter = 0
 
+MAX_RAM = 0
+MIN_RAM = 10000
+
 lram0 = []
 lram1 = []
 lram2 = []
@@ -48,12 +51,19 @@ with open(filename, 'rb') as csvfile:
 		del row[0]
 		for cell in row:
                     RAM_OCCUPATION[int(cell)] = RAM_OCCUPATION[int(cell)] + 1
-		
+                
                 lram0.append(RAM_OCCUPATION[0])
                 lram1.append(RAM_OCCUPATION[1])
                 lram2.append(RAM_OCCUPATION[2])
                 lram3.append(RAM_OCCUPATION[3])
                 gram.append(RAM_OCCUPATION[4])
+                
+                for i in range(0, 5) :
+                    if RAM_OCCUPATION[i] > MAX_RAM :
+                        MAX_RAM = RAM_OCCUPATION[i]
+                    
+                    if RAM_OCCUPATION[i] < MIN_RAM :
+                        MIN_RAM = RAM_OCCUPATION[i]
 		
 		
 		##print str(RAM_OCCUPATION) + " (" + str(COST) + ")"
@@ -98,7 +108,7 @@ line3 = p1.plot(epoch, lram2, 'c', label="LRAM2")
 line4 = p1.plot(epoch, lram3, 'g', label="LRAM3")
 line5 = p1.plot(epoch, gram, 'r', label="GRAM")
 
-p1.set_ylim([0, 3000])
+p1.set_ylim([MIN_RAM, MAX_RAM])
 p1.set_xlim([0, epoch[len(epoch) - 1]])
 p1.set_xlabel('Epoch')
 p1.set_ylabel('Memory occupation')
@@ -111,7 +121,7 @@ p1.grid()
 p2.plot(epoch, y2, 'k')
 
 p2.set_xlim([0, epoch[len(epoch) - 1]])
-p2.set_ylim([0.8, y2[0]])
+p2.set_ylim(y2[len(y2) - 1], y2[0])
 p2.set_ylabel('Fitness')
 p2.set_xlabel('Epoch')
 p2.grid()
