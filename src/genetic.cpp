@@ -17,7 +17,7 @@ using namespace std;
 
 std::vector <RAM> ramg[pop];
 typedef std::vector<Label> Solution;
-
+std::random_device rd;
 
 void sortPopulation(Solution s[], double fit[])
 {
@@ -51,8 +51,7 @@ void evaluatePopulation(Solution s[], double fit[])
 
 Solution ComputeNewSolutionLight(const Solution &s, unsigned int maximum)
 {
-	int seed = std::chrono::system_clock::now().time_since_epoch().count();
-	std::default_random_engine generator(seed);
+    std::default_random_engine generator(rd());
 	std::uniform_int_distribution<int> dist_label(0, s.size()-1);
 	std::uniform_int_distribution<int> dist_ram(0, 4);
 	std::uniform_int_distribution<int> dist_noise(1, maximum);
@@ -67,14 +66,14 @@ Solution ComputeNewSolutionLight(const Solution &s, unsigned int maximum)
 
 Solution ComputeNewSolutionRAM2RAM(const Solution &s, unsigned int maximum)
 {
-	int seed = std::chrono::system_clock::now().time_since_epoch().count();
-	std::default_random_engine generator(seed);
+    std::default_random_engine generator(rd());
 	std::uniform_int_distribution<int> dist_ram(0, 4);
 	std::uniform_int_distribution<int> dist_noise(1, maximum);
 	Solution newSol(s);
 	unsigned int noise = dist_noise(generator);
 	RAM_LOC dst;
 	RAM_LOC src;
+    unsigned int src_pos, dst_pos;
 
 	src = static_cast<RAM_LOC>(1 << dist_ram(generator));
 	do {
@@ -94,16 +93,19 @@ Solution ComputeNewSolutionRAM2RAM(const Solution &s, unsigned int maximum)
 	std::uniform_int_distribution<int> dist_label_src(0, src_label.size()-1);
 	std::uniform_int_distribution<int> dist_label_dst(0, dst_label.size()-1);
 
-	for (unsigned int i=0; i<noise && i<src_label.size()-1 && i<dst_label.size()-1; ++i)
-		std::swap(dst_label[dist_label_dst(generator)]->ram, src_label[dist_label_src(generator)]->ram);
+    for (unsigned int i=0; i<noise && i<src_label.size()-1 && i<dst_label.size()-1; ++i) {
+        src_pos = dist_label_src(generator);
+        dst_pos = dist_label_dst(generator);
+
+        std::swap(dst_label[dst_pos]->ram, src_label[src_pos]->ram);
+    }
 
 	return newSol;
 }
 
 Solution ComputeNewSolutionRAM2Others(const Solution &s, unsigned int maximum)
 {
-	int seed = std::chrono::system_clock::now().time_since_epoch().count();
-	std::default_random_engine generator(seed);
+    std::default_random_engine generator(rd());
 	std::uniform_int_distribution<int> dist_ram(0, 4);
 	std::uniform_int_distribution<int> dist_noise(1, maximum);
 	Solution newSol(s);
@@ -135,8 +137,7 @@ Solution ComputeNewSolutionRAM2Others(const Solution &s, unsigned int maximum)
 
 void performMutation(Solution s[], unsigned int start, unsigned int end)
 {
-	int seed = std::chrono::system_clock::now().time_since_epoch().count();
-	std::default_random_engine generator(seed);
+    std::default_random_engine generator(rd());
 	std::uniform_int_distribution<int> choose_mutation(0, 10);
 
 	for (unsigned int p = start; p < end; ++p) {
@@ -151,8 +152,7 @@ void performMutation(Solution s[], unsigned int start, unsigned int end)
 
 Solution crossover(const Solution &a, const Solution &b)
 {
-	int seed = std::chrono::system_clock::now().time_since_epoch().count();
-	std::default_random_engine generator(seed);
+    std::default_random_engine generator(rd());
 	std::uniform_int_distribution<int> split_dist(0, a.size() - 1);
 	Solution newSol;
 	newSol.resize(0);
@@ -186,8 +186,7 @@ Solution crossover(const Solution &a, const Solution &b)
 
 void performReproduction(Solution s[], unsigned int start, unsigned int end, unsigned int sons)
 {
-	int seed = std::chrono::system_clock::now().time_since_epoch().count();
-	std::default_random_engine generator(seed);
+    std::default_random_engine generator(rd());
 	std::uniform_int_distribution<int> parents_dist(start, end);
 
 	for (unsigned int p = 0; p < sons; ++p) {
@@ -210,8 +209,7 @@ void performMitosis(Solution s[], unsigned int start, unsigned int end, unsigned
 
 void InitializePopulation(Solution s[])
 {
-	int seed = std::chrono::system_clock::now().time_since_epoch().count();
-	std::default_random_engine generator(seed);
+    std::default_random_engine generator(rd());
 	std::uniform_int_distribution<int> distribution(0, 4);
 	unsigned int position;
 	RAM ram_temp;
@@ -244,9 +242,6 @@ void InitializePopulation(Solution s[])
 
 std::pair<Solution, double> genetic()
 {
-	unsigned int seed = std::chrono::system_clock::now().time_since_epoch().count();
-	std::default_random_engine generator(seed);
-	std::uniform_int_distribution<int> dist_eval(0, pop);
 	int termination = 1;
 	uint64_t epoch = 0;
 
