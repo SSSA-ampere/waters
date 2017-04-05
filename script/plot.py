@@ -121,14 +121,20 @@ given_solution_result = 1.32025
 
 p2.plot(epoch, y2, 'k')
 p2.plot(epoch, [given_solution_result] * len(y2), 'r--')
+p2.plot(epoch, [1] * len(y2), 'b--')
 
-FIT_MIN = y2[len(y2) - 1] if y2[len(y2) - 1] < given_solution_result else given_solution_result
+FIT_MIN = y2[len(y2) - 1] if y2[len(y2) - 1] < 1 else 1
 FIT_MAX = y2[0] if y2[0] > given_solution_result else given_solution_result
 
 p2.set_xlim([0, epoch[len(epoch) - 1]])
 p2.set_ylim(FIT_MIN, FIT_MAX)
+
+extraticks = [FIT_MIN, FIT_MAX]
+p2.set_yticks(list(p2.get_yticks()) + extraticks)
+
 p2.set_ylabel('Fitness')
 p2.set_xlabel('Epoch')
 p2.grid()
 
 plt.show()
+
