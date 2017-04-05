@@ -199,7 +199,7 @@ static inline Solution ComputeNewSolutionMassive(const Solution &s)
 	return newSol;
 }
 
-void solution_to_csv(const string &filename, const Solution &s, double cost, uint64_t epoch)
+void solution_to_csv(const string &filename, const Solution &s, double cost, double fit_mean, uint64_t epoch)
 {
 	ofstream file(filename, std::ofstream::app);
 	if(!file.is_open()) {
@@ -208,6 +208,7 @@ void solution_to_csv(const string &filename, const Solution &s, double cost, uin
 	}
 
 	file << cost;
+	file << ',' << fit_mean;
 	file << ',' << epoch;
 	for (Label const &v : s) {
 		file << "," << loc_to_id(v.ram);
