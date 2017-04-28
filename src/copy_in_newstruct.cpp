@@ -2,7 +2,11 @@
 #include "milpData.h"
 #include <algorithm>
 
+unsigned int max_prio = 50;
+bool LET = 1;
 double scaling_factor = 1;
+
+
 
 void copy_in_newstruct(void)
 {
@@ -77,6 +81,7 @@ void copy_in_newstruct(void)
 					t->labels_w.push_back(li);
 					labels[li].runnable_users.push_back(ro.id);
 					labels[li].used_by_CPU |= 1 << i;
+					labels[li].iswritten = 1;
 				}
 				for (int ni : ri->labelsWrite_num_access) {
 					ro.labels_w_access.push_back(ni);
@@ -96,35 +101,127 @@ void copy_in_newstruct(void)
 		}
 	}
 
-	// Riordina task per priorita`
-	for (int i = 0; i<4; i++)
-		std::sort(CPU[i].begin(), CPU[i].end(),
-			[](const Task &a, const Task &b) { return a.prio > b.prio; });
-
-
 
 	for (EventChains2* ei : eventChains) {
 
 		Event_Chain eo;
+		Runnable r_appo;
 
 		eo.name = ei->name;
 
 		for (EventChains2_elem *ci : ei->eventChains_elems) {
 
 			for (Runnable r : runnables) {
-				if (ci->runnable_response->getName().compare(r.name) == 0)
+				if (ci->runnable_response->getName().compare(r.name) == 0) {
 					eo.runnables_response.push_back(r.id);
+					r_appo = r;
+				}
+				
 				if (ci->runnable_stimulus->getName().compare(r.name) == 0) {
 					eo.runnables_stimulus.push_back(r.id);
 					eo.runnables_chain.push_back(r.id);
+					eo.task_chain.push_back(r.task_id);
+					eo.cpu_chain.push_back(r.cpu_id);
+					eo.run_names.push_back(r.name);
 				}
 			}
 			eo.labels.push_back(ci->label_wr->getid());
 				
 		}
 		eo.runnables_chain.push_back(eo.runnables_response.back());
+		eo.task_chain.push_back(r_appo.task_id);
+		eo.cpu_chain.push_back(r_appo.cpu_id);
+		eo.run_names.push_back(r_appo.name);
 		event_chains.push_back(eo);			
 	}
+
+	// Adding High priority WR tasks for LET architecture
+	if (LET) {
+
+		unsigned int label_id = labels.size();
+
+		for (Event_Chain e : event_chains) {
+
+			for (int i = 0; i < e.runnables_chain.size(); i++) {			
+				Task t;
+				t.cpu_id = e.cpu_chain.at(i);
+				t.id = task_id_counter++;
+				t.wcet = cycles2us(1);
+				t.inflated_wcet = cycles2us(1);
+				t.response_time = cycles2us(1);
+				t.response_time1 = cycles2us(1);
+				t.exec_time = cycles2us(1);
+				t.name = e.name + "_LET_" + to_string(i);
+				
+				if (i > 0) { // Reads label and writes in local copy
+
+					// Create local copy
+					Label lo;
+					lo.id = label_id++;
+					lo.runnable_users.push_back(e.runnables_chain.at(i));
+					lo.ram = GRAM;
+					lo.bitLen = 32; // Handcoded -- safe bound (it doesn't really have any impact)
+					labels.push_back(lo);
+
+					for (Task &to : CPU[t.cpu_id]) {
+						if (to.id == e.task_chain.at(i)) {
+							t.period = to.period;
+							t.deadline = to.period;
+							t.prio = max_prio + to.prio - i; // highest priority
+
+							for (unsigned int j = 0; j < size(to.labels_r); j++) { // Substitute label id with copy id in task
+								if (to.labels_r.at(j) == e.labels.at(i - 1))
+									to.labels_r.at(j) = lo.id;
+							}
+						}
+					}
+
+					t.labels_w.push_back(lo.id);
+					t.labels_w_access.push_back(1);
+					t.labels_r.push_back(e.labels.at(i - 1));
+					t.labels_r_access.push_back(1);
+				}
+
+				if (i < e.labels.size()) { // Reads local copy and writes in correct label
+
+										   // Create local copy
+					Label lo;
+					lo.id = label_id++;
+					lo.runnable_users.push_back(e.runnables_chain.at(i));
+					lo.iswritten = 1;
+					lo.ram = GRAM;
+					lo.bitLen = 32; // Handcoded -- safe bound (it doesn't really have any impact)
+					labels.push_back(lo);
+
+					for (Task &to : CPU[t.cpu_id]) {
+						if (to.id == e.task_chain.at(i)) {
+							t.period = to.period;
+							t.deadline = to.period;
+							t.prio = max_prio + to.prio - i; // highest priority
+
+							for (unsigned int j = 0; j < size(to.labels_w); j++) { // Substitute label id with copy id in task
+								if (to.labels_w.at(j) == e.labels.at(i))
+									to.labels_w.at(j) = lo.id;
+							}
+						}
+					}
+
+					t.labels_r.push_back(lo.id);
+					t.labels_r_access.push_back(1);
+					t.labels_w.push_back(e.labels.at(i));
+					t.labels_w_access.push_back(1);
+				}
+
+				CPU[t.cpu_id].push_back(t);
+			}		
+		}
+	}
+
+	// Riordina task per priorita`
+	for (int i = 0; i<4; i++)
+		std::sort(CPU[i].begin(), CPU[i].end(),
+			[](const Task &a, const Task &b) { return a.prio > b.prio; });
+
 
 	deleter(taskList);
 	deleter(runnableList);

@@ -40,13 +40,18 @@ void sortPopulation(Solution s[], double fit[])
 	}
 }
 
-void evaluatePopulation(Solution s[], double fit[])
+double evaluatePopulation(Solution s[], double fit[])
 {
+	double mean_fitness = 0;
+
 	for (unsigned int p = 0; p < pop; ++p) {
 		fit[p] = computeResponseTime(s[p]);
+		mean_fitness += fit[p];
 	}
 
 	sortPopulation(s, fit);
+
+	return mean_fitness / pop;
 }
 
 Solution ComputeNewSolutionLight(const Solution &s, unsigned int maximum)
@@ -66,7 +71,7 @@ Solution ComputeNewSolutionLight(const Solution &s, unsigned int maximum)
 
 Solution ComputeNewSolutionRAM2RAM(const Solution &s, unsigned int maximum)
 {
-    std::default_random_engine generator(rd());
+	std::default_random_engine generator(rd());
 	std::uniform_int_distribution<int> dist_ram(0, 4);
 	std::uniform_int_distribution<int> dist_noise(1, maximum);
 	Solution newSol(s);
@@ -81,24 +86,20 @@ Solution ComputeNewSolutionRAM2RAM(const Solution &s, unsigned int maximum)
 	} while (dst == src);
 
 	std::vector<Label *> src_label;
-	std::vector<Label *> dst_label;
 
 	for (Label &l : newSol) {
 		if (l.ram == src)
 			src_label.push_back(&l);
-		else if (l.ram == dst)
-			dst_label.push_back(&l);
 	}
 
-	std::uniform_int_distribution<int> dist_label_src(0, src_label.size()-1);
-	std::uniform_int_distribution<int> dist_label_dst(0, dst_label.size()-1);
 
-    for (unsigned int i=0; i<noise && i<src_label.size()-1 && i<dst_label.size()-1; ++i) {
-        src_pos = dist_label_src(generator);
-        dst_pos = dist_label_dst(generator);
+	for (int i=0; (i < noise) && (i + 1 < src_label.size()); ++i) {
+		std::uniform_int_distribution<int> dist_label_src(0, src_label.size()-1);
 
-        std::swap(dst_label[dst_pos]->ram, src_label[src_pos]->ram);
-    }
+		src_pos = dist_label_src(generator);
+		src_label[src_pos]->ram = dst;
+		src_label.erase(src_label.begin() + src_pos);
+	}
 
 	return newSol;
 }
@@ -122,14 +123,16 @@ Solution ComputeNewSolutionRAM2Others(const Solution &s, unsigned int maximum)
 			src_label.push_back(&l);
 	}
 
-	std::uniform_int_distribution<int> dist_label_src(0, src_label.size()-1);
+	for (int i=0; (i < noise) && (i + 1 < src_label.size()); ++i) {
+		std::uniform_int_distribution<int> dist_label_src(0, src_label.size()-1);
+		int dst_pos = dist_label_src(generator);
 
-	for (unsigned int i=0; i<noise && i<src_label.size()-1; ++i) {
 		do {
 			dst = static_cast<RAM_LOC>(1 << dist_ram(generator));
 		} while (dst == src);
 
-		src_label[dist_label_src(generator)]->ram = dst;
+		src_label[dst_pos]->ram = dst;
+		src_label.erase(src_label.begin() + dst_pos);
 	}
 
 	return newSol;
@@ -139,14 +142,16 @@ void performMutation(Solution s[], unsigned int start, unsigned int end)
 {
     std::default_random_engine generator(rd());
     std::uniform_int_distribution<int> choose_mutation(0, 100);
+    unsigned int mutation_kind;
 
 	for (unsigned int p = start; p < end; ++p) {
-        if (choose_mutation(generator) < 5)
+        mutation_kind = choose_mutation(generator);
+        if (mutation_kind < 5)
             s[p] = ComputeNewSolutionRAM2RAM(s[p], 100);
-        else if (choose_mutation(generator) < 15)
-            s[p] = ComputeNewSolutionRAM2Others(s[p], 200);
+        else if (mutation_kind < 15)
+			 s[p] = ComputeNewSolutionRAM2Others(s[p], 200);
 		else
-            s[p] = ComputeNewSolutionLight(s[p], 100);
+			 s[p] = ComputeNewSolutionLight(s[p], 100);
 	}
 }
 
@@ -230,8 +235,11 @@ void InitializePopulation(Solution s[])
 
 		for (unsigned int i = 0; i<s[p].size(); ++i) {
 			do {
-				position = distribution(generator);
-			} while (ramg[p].at(position).available - s[p].at(i).bitLen < 0);
+				//do {
+				  position = distribution(generator);
+				//	}	while (static_cast<RAM_LOC>(1 << position) == LRAM_1);
+			  } while (ramg[p].at(position).available - s[p].at(i).bitLen < 0);
+
 
 			ramg[p].at(position).available -= s[p].at(i).bitLen;
 			s[p].at(i).ram = static_cast<RAM_LOC>(1 << position);
@@ -275,17 +283,20 @@ std::pair<Solution, double> genetic()
 
 	string filename = string("result_") + std::to_string(seconds) + string(".csv");
 
+	cout << "csv name: " << filename << endl << endl;
+
 	Solution s[pop], s_opt;
 	double fit[pop], fit_opt;
+	double fit_mean;
 
 	InitializePopulation(s);
-	evaluatePopulation(s,fit);
+	fit_mean = evaluatePopulation(s,fit);
 
 	fit_opt = fit[0];
 	s_opt = s[0];
 
-	new_optimal_solution_found(fit_opt, s_opt, epoch);
-	solution_to_csv(filename, s_opt, fit_opt, epoch);
+	new_optimal_solution_found(fit_opt, s_opt, fit_mean, epoch);
+	solution_to_csv(filename, s_opt, fit_opt, fit_mean, epoch);
 	do {
 		++epoch;
 		//selectParents();
@@ -295,13 +306,13 @@ std::pair<Solution, double> genetic()
 		performMutation(s, TO_MUTATE_FROM, TO_MUTATE_FROM + TO_MUTATE);
 		//updatePopulation();
 
-		evaluatePopulation(s, fit);
+		fit_mean = evaluatePopulation(s, fit);
 
 		if (fit_opt > fit[0]) {
 			fit_opt = fit[0];
 			s_opt = s[0];
-			new_optimal_solution_found(fit_opt, s_opt, epoch);
-			solution_to_csv(filename, s_opt, fit_opt, epoch);
+			new_optimal_solution_found(fit_opt, s_opt, fit_mean, epoch);
+			solution_to_csv(filename, s_opt, fit_opt, fit_mean, epoch);
 		} else {
 			cout << "." << endl;
 		}

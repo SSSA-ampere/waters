@@ -19,6 +19,7 @@ struct Label {
 	unsigned int id;
 	unsigned int bitLen;
 	std::vector<unsigned int> runnable_users;
+	unsigned int iswritten = 0;
 	uint8_t used_by_CPU;
 	RAM_LOC ram;
 
@@ -77,6 +78,9 @@ struct Event_Chain {
   std::vector<unsigned int> runnables_response;
   std::vector<unsigned int> labels;
   std::vector<unsigned int> runnables_chain;
+  std::vector<unsigned int> task_chain;
+  std::vector<unsigned int> cpu_chain;
+  std::vector<std::string> run_names;
 
 };
 
