@@ -1,10 +1,11 @@
 #include "copy_in_newstruct.h"
 #include "milpData.h"
+#include "strtools.h"
 #include <algorithm>
 
-unsigned int max_prio = 50;
-bool LET = 1;
-double scaling_factor = 1;
+const unsigned int max_prio = 50;
+const bool LET = 1;
+const double scaling_factor = 1;
 
 
 
@@ -139,10 +140,13 @@ void copy_in_newstruct(void)
 	if (LET) {
 
 		unsigned int label_id = labels.size();
+		unsigned int num_std_tasks = task_id_counter + 1;
+		bool isacopy = false;
 
 		for (Event_Chain e : event_chains) {
 
-			for (int i = 0; i < e.runnables_chain.size(); i++) {			
+			for (unsigned int i = 0; i < e.runnables_chain.size(); i++) {
+
 				Task t;
 				t.cpu_id = e.cpu_chain.at(i);
 				t.id = task_id_counter++;
@@ -151,7 +155,7 @@ void copy_in_newstruct(void)
 				t.response_time = cycles2us(1);
 				t.response_time1 = cycles2us(1);
 				t.exec_time = cycles2us(1);
-				t.name = e.name + "_LET_" + to_string(i);
+				t.name = "LET_" + e.name + "_" + to_string(i);
 				
 				if (i > 0) { // Reads label and writes in local copy
 
@@ -197,7 +201,7 @@ void copy_in_newstruct(void)
 						if (to.id == e.task_chain.at(i)) {
 							t.period = to.period;
 							t.deadline = to.period;
-							t.prio = max_prio + to.prio - i; // highest priority
+							t.prio = max_prio + to.prio; // highest priority
 
               for (unsigned int j = 0; j < to.labels_w.size(); j++) { // Substitute label id with copy id in task
 								if (to.labels_w.at(j) == e.labels.at(i))
@@ -212,7 +216,25 @@ void copy_in_newstruct(void)
 					t.labels_w_access.push_back(1);
 				}
 
-				CPU[t.cpu_id].push_back(t);
+				isacopy = false;
+
+				for (Task &tp : CPU[t.cpu_id]) {
+					if (tp.id >= num_std_tasks && tp.period == t.period) {
+						// if new LET task has a previously created one
+						isacopy = true;
+						task_id_counter--;
+
+						for (unsigned int j = 0; j < t.labels_r.size(); j++) {
+							tp.labels_r.push_back(t.labels_r.at(j));
+							tp.labels_r_access.push_back(1);
+							tp.labels_w.push_back(t.labels_w.at(j));
+							tp.labels_w_access.push_back(1);
+						}
+					}
+				}
+
+				if (!isacopy) 
+					CPU[t.cpu_id].push_back(t);
 			}		
 		}
 	}
@@ -221,7 +243,6 @@ void copy_in_newstruct(void)
 	for (int i = 0; i<4; i++)
 		std::sort(CPU[i].begin(), CPU[i].end(),
 			[](const Task &a, const Task &b) { return a.prio > b.prio; });
-
 
 	deleter(taskList);
 	deleter(runnableList);
