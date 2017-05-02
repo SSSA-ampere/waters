@@ -115,7 +115,7 @@ line5 = p1.plot(epoch, gram, 'r', label="GRAM")
 p1.set_ylim([MIN_RAM, MAX_RAM])
 p1.set_xlim([0, epoch[len(epoch) - 1]])
 p1.set_xlabel('Epoch')
-p1.set_ylabel('Memory occupation')
+p1.set_ylabel('Memory Utilized')
 #p1.set_zlabel('Cost/Allocation')
 
 p1.legend()
