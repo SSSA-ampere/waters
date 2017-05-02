@@ -9,6 +9,7 @@ set (SOURCE_FILES
   EventChains2_elem.cpp
   genetic.cpp
   Label2.cpp
+  main.cpp
   main_waters.cpp
   milpData.cpp
   RT.cpp

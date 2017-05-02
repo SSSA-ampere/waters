@@ -533,7 +533,7 @@ void print_tasks_info()
   }
 }
 
-int main()
+int main_waters()
 {
   parse_XMLmodel();
 
