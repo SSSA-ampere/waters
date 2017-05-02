@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <string>
-#include <stdint.h>
+#include <cstdint>
 
 const double instructions_per_us = 2e8 / 1e6;
 

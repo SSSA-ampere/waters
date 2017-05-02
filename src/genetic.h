@@ -2,7 +2,7 @@
 #define GENETIC_H__
 
 #include <vector>
-#include <stdlib.h>
+#include <cstdlib>
 #include "milpData.h"
 
 #define pop 500
