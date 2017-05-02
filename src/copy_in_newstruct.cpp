@@ -169,7 +169,7 @@ void copy_in_newstruct(void)
 							t.deadline = to.period;
 							t.prio = max_prio + to.prio - i; // highest priority
 
-							for (unsigned int j = 0; j < size(to.labels_r); j++) { // Substitute label id with copy id in task
+              for (unsigned int j = 0; j < to.labels_r.size(); j++) { // Substitute label id with copy id in task
 								if (to.labels_r.at(j) == e.labels.at(i - 1))
 									to.labels_r.at(j) = lo.id;
 							}
@@ -199,7 +199,7 @@ void copy_in_newstruct(void)
 							t.deadline = to.period;
 							t.prio = max_prio + to.prio - i; // highest priority
 
-							for (unsigned int j = 0; j < size(to.labels_w); j++) { // Substitute label id with copy id in task
+              for (unsigned int j = 0; j < to.labels_w.size(); j++) { // Substitute label id with copy id in task
 								if (to.labels_w.at(j) == e.labels.at(i))
 									to.labels_w.at(j) = lo.id;
 							}
