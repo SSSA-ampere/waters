@@ -140,7 +140,7 @@ void copy_in_newstruct(void)
 	if (LET) {
 
 		unsigned int label_id = labels.size();
-		unsigned int num_std_tasks = task_id_counter + 1;
+		unsigned int num_std_tasks = task_id_counter;
 		bool isacopy = false;
 
 		for (Event_Chain e : event_chains) {
@@ -171,7 +171,7 @@ void copy_in_newstruct(void)
 						if (to.id == e.task_chain.at(i)) {
 							t.period = to.period;
 							t.deadline = to.period;
-							t.prio = max_prio + to.prio - i; // highest priority
+							t.prio = max_prio + to.prio; // highest priority
 
               for (unsigned int j = 0; j < to.labels_r.size(); j++) { // Substitute label id with copy id in task
 								if (to.labels_r.at(j) == e.labels.at(i - 1))
