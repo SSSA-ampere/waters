@@ -3,7 +3,7 @@ include_directories(.)
 include_directories(./tinyxml)
 
 set (SOURCE_FILES
-  annealing.cpp
+#  annealing.cpp
   copy_in_newstruct.cpp
   EventChains2.cpp
   EventChains2_elem.cpp
@@ -12,6 +12,7 @@ set (SOURCE_FILES
   main.cpp
   main_waters.cpp
   milpData.cpp
+  optimization.cpp
   RT.cpp
   Runnable2.cpp
   strtools.cpp

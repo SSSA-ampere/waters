@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <cstdint>
+#include <iostream>
 
 const double instructions_per_us = 2e8 / 1e6;
 
@@ -15,15 +16,17 @@ enum RAM_LOC {
 	GRAM = 16
 };
 
-struct Label {
+class Label {
+  public:
 	unsigned int id;
 	unsigned int bitLen;
 	std::vector<unsigned int> runnable_users;
 	unsigned int iswritten = 0;
 	uint8_t used_by_CPU;
 	RAM_LOC ram;
-
 };
+
+std::ostream & operator<<(std::ostream &out, const Label &l);
 
 struct RAM {
   int64_t size; // in bytes
@@ -32,7 +35,6 @@ struct RAM {
 };
 
 struct Runnable { // add bool = response time important (end of task or inchain)
-
 	std::string name;
 	unsigned int id;
 	unsigned int task_id;
@@ -48,7 +50,6 @@ struct Runnable { // add bool = response time important (end of task or inchain)
 };
 
 struct Task { // TODO inserire periodico o ISR
-
 	std::string name;
 	unsigned int id;
 	unsigned int cpu_id;
@@ -71,7 +72,6 @@ struct Task { // TODO inserire periodico o ISR
 };
 
 struct Event_Chain {
-
   std::string name;
   unsigned int id;
   std::vector<unsigned int> runnables_stimulus;
@@ -81,7 +81,6 @@ struct Event_Chain {
   std::vector<unsigned int> task_chain;
   std::vector<unsigned int> cpu_chain;
   std::vector<std::string> run_names;
-
 };
 
 extern std::vector<Runnable> runnables;

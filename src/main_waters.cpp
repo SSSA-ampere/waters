@@ -533,7 +533,7 @@ void print_tasks_info()
   }
 }
 
-int main_waters()
+void initialize_waters_data()
 {
   parse_XMLmodel();
 
@@ -544,11 +544,15 @@ int main_waters()
   copy_in_newstruct();
 
   compute_RT_lb();
+}
 
+int main_waters()
+{
+  initialize_waters_data();
 
   double RT_init = computeResponseTime(labels);
-
-  new_optimal_solution_found(RT_init, labels);
+  std::cout << "Solution with challenge-given solution: " << RT_init << std::endl;
+  //new_optimal_solution_found(RT_init, labels);
 
   // Assunzione: priority value alto, priorita` alta
   genetic_run();
