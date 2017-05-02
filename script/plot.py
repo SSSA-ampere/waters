@@ -106,11 +106,13 @@ with open(filename, 'rb') as csvfile:
 #epoch = np.arange(0, len(y2), 1)
 
 
-line1 = p1.plot(epoch, lram0, 'k', label="LRAM0")
-line2 = p1.plot(epoch, lram1, 'b', label="LRAM1")
-line3 = p1.plot(epoch, lram2, 'c', label="LRAM2")
-line4 = p1.plot(epoch, lram3, 'g', label="LRAM3")
-line5 = p1.plot(epoch, gram, 'r', label="GRAM")
+######################################################
+
+line_1_1 = p1.plot(epoch, lram0, 'k', label="LRAM0")
+line_1_2 = p1.plot(epoch, lram1, 'b', label="LRAM1")
+line_1_3 = p1.plot(epoch, lram2, 'c', label="LRAM2")
+line_1_4 = p1.plot(epoch, lram3, 'g', label="LRAM3")
+line_1_5 = p1.plot(epoch, gram, 'r', label="GRAM")
 
 p1.set_ylim([MIN_RAM, MAX_RAM])
 p1.set_xlim([0, epoch[len(epoch) - 1]])
@@ -121,12 +123,14 @@ p1.set_ylabel('Memory Utilized')
 p1.legend()
 p1.grid()
 
+######################################################
+
 given_solution_result = 1.32025
 
-p2.plot(epoch, y2, 'k')
-p2.plot(epoch, fit_mean, 'g')
-p2.plot(epoch, [given_solution_result] * len(y2), 'r--')
-p2.plot(epoch, [1] * len(y2), 'b--')
+line_2_1 = p2.plot(epoch, y2, 'k', label="Best result in population")
+line_2_2 = p2.plot(epoch, fit_mean, 'g', label="Mean result in population")
+line_2_3 = p2.plot(epoch, [given_solution_result] * len(y2), 'r--', label="Challenge given solution result")
+line_2_4 = p2.plot(epoch, [1] * len(y2), 'b--', label="Necessary condition for schedulability")
 
 FIT_MIN = y2[len(y2) - 1] if y2[len(y2) - 1] < 1 else 1
 FIT_MAX = y2[0] if y2[0] > given_solution_result else given_solution_result
@@ -139,7 +143,11 @@ p2.set_yticks(list(p2.get_yticks()) + extraticks)
 
 p2.set_ylabel('Fitness')
 p2.set_xlabel('Epoch')
+
+p2.legend()
 p2.grid()
+
+######################################################
 
 plt.show()
 
