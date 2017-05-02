@@ -93,20 +93,6 @@ static inline double computeInterf(const Runnable &r, const std::vector<Label> &
 	return cycles2us(interf);
 }
 
-void printSolution(const Solution &s)
-{
-	unsigned int labels_in_memory[5];
-
-	for (unsigned int i=0; i<5; ++i)
-		labels_in_memory[i] = 0;
-
-	for (Label const &l : s)
-		++labels_in_memory[loc_to_id(l.ram)];
-
-	for (unsigned int i=0; i<5; ++i)
-		cout << "[" << labels_in_memory[i] << "]";
-}
-
 static inline void ComputeAnySolution(Solution &s)
 {
 	int seed = std::chrono::system_clock::now().time_since_epoch().count();
@@ -114,13 +100,13 @@ static inline void ComputeAnySolution(Solution &s)
 	std::uniform_int_distribution<int> distribution(0, 4);
 	unsigned int position;
 
-	for (unsigned int i=0; i<s.size(); ++i) {
+  for (unsigned int i=0; i<s.first.size(); ++i) {
 		do {
 			position = distribution(generator);
-		} while (ram[position].available - s[i].bitLen < 0);
+    } while (ram[position].available - s.first[i].bitLen < 0);
 
-		ram[position].available -= s[i].bitLen;
-		s[i].ram = static_cast<RAM_LOC>(1 << position);
+    ram[position].available -= s.first[i].bitLen;
+    s.first[i].ram = static_cast<RAM_LOC>(1 << position);
 	}
 }
 
@@ -128,16 +114,16 @@ static inline Solution ComputeNewSolutionHeavy(const Solution &s)
 {
 	unsigned int seed = std::chrono::system_clock::now().time_since_epoch().count();
 	std::default_random_engine generator(seed);
-	std::uniform_int_distribution<int> dist_label(0, s.size()-1);
+  std::uniform_int_distribution<int> dist_label(0, s.first.size()-1);
 	std::uniform_int_distribution<int> dist_ram(0, 4);
-	std::uniform_int_distribution<int> dist_noise(s.size() * 0.01, s.size() * 0.03);
+  std::uniform_int_distribution<int> dist_noise(s.first.size() * 0.01, s.first.size() * 0.03);
 	Solution newSol(s);
 	unsigned int p;
 	int64_t res;
 	unsigned int noise = dist_noise(generator);
 
 	for (unsigned int i=0; i<noise; ++i) {
-		Label &L = newSol[dist_label(generator)];
+    Label &L = newSol.first[dist_label(generator)];
 
 		do {
 			p = dist_ram(generator);
@@ -156,11 +142,11 @@ static inline Solution ComputeNewSolutionMassive(const Solution &s)
 {
 	unsigned int seed = std::chrono::system_clock::now().time_since_epoch().count();
 	std::default_random_engine generator(seed);
-	std::uniform_int_distribution<int> dist_label(0, s.size()-1);
+  std::uniform_int_distribution<int> dist_label(0, s.first.size()-1);
 	std::uniform_int_distribution<int> dist_ram_src(0, 4);
 	std::uniform_int_distribution<int> dist_ram_dst(0, 4);
 
-	std::uniform_int_distribution<int> dist_noise(s.size() * 0.05, s.size() * 0.3);
+  std::uniform_int_distribution<int> dist_noise(s.first.size() * 0.05, s.first.size() * 0.3);
 	Solution newSol(s);
 	unsigned int p;
 	int64_t res;
@@ -172,16 +158,13 @@ static inline Solution ComputeNewSolutionMassive(const Solution &s)
 		dst = static_cast<RAM_LOC>(1 << dist_ram_dst(generator));
 	} while (dst == src);
 
-	unsigned int l;
-	Label appo;
-	for (unsigned int i=0; i<newSol.size(); ++i) {
+  unsigned int l;
+  for (unsigned int i=0; i<newSol.first.size(); ++i) {
 		l = dist_label(generator);
-		appo = newSol[i];
-		newSol[i] = newSol[l];
-		newSol[l] = appo;
+    std::swap(newSol.first[i], newSol.first[l]);
 	}
 
-	for (Label &L : newSol) {
+  for (Label &L : newSol.first) {
 		if (L.ram != src)
 			continue;
 		if (ram[loc_to_id(dst)].available - L.bitLen < 0)
@@ -199,30 +182,12 @@ static inline Solution ComputeNewSolutionMassive(const Solution &s)
 	return newSol;
 }
 
-void solution_to_csv(const string &filename, const Solution &s, double cost, double fit_mean, uint64_t epoch)
-{
-	ofstream file(filename, std::ofstream::app);
-	if(!file.is_open()) {
-		  std::perror("File opening failed");
-			exit(-1);
-	}
-
-	file << cost;
-	file << ',' << fit_mean;
-	file << ',' << epoch;
-	for (Label const &v : s) {
-		file << "," << loc_to_id(v.ram);
-	}
-	file << endl;
-
-	file.close();
-}
 
 Solution ComputeNewSolutionLight(const Solution &s)
 {
 	int seed = std::chrono::system_clock::now().time_since_epoch().count();
 	std::default_random_engine generator(seed);
-	std::uniform_int_distribution<int> dist_label(0, s.size()-1);
+  std::uniform_int_distribution<int> dist_label(0, s.first.size()-1);
 	std::uniform_int_distribution<int> dist_ram(0, 4);
 	std::uniform_int_distribution<int> dist_noise(1, 100);
 	Solution newSol(s);
@@ -231,7 +196,7 @@ Solution ComputeNewSolutionLight(const Solution &s)
 	unsigned int noise = dist_noise(generator);
 
 	for (unsigned int i=0; i<noise; ++i) {
-		Label &L = newSol[dist_label(generator)];
+    Label &L = newSol.first[dist_label(generator)];
 
 		/*if (L.ram == GRAM) {
 			do {
@@ -271,7 +236,7 @@ void update_wcets(const Solution &s)
 				// foreach runnable
 				Runnable &runnable_ijk = runnables[task_ij.runnables[k]];
 
-				ram_interference += computeInterf(runnable_ijk, s);
+        ram_interference += computeInterf(runnable_ijk, s.first);
 			}
 
 			task_ij.inflated_wcet = task_ij.exec_time + ram_interference;
@@ -284,9 +249,9 @@ static inline double EvaluateSolution(const Solution &s)
 {
 	double ret;
 
-	compute_coremap(s);
+  compute_coremap(s.first);
 	//update_wcets(s);
-	ret = computeResponseTime(s);
+  ret = computeResponseTime(s.first);
 	//ret = min_slack(s);
 	//cout << "Minimum slack found: " << ret << endl;
 
@@ -308,11 +273,13 @@ std::pair<Solution, double> annealing()
 	unsigned int seed = std::chrono::system_clock::now().time_since_epoch().count();
 	std::default_random_engine generator(seed);
 	std::uniform_int_distribution<int> dist_eval(0, 100);
-	Solution s(labels), s_new, s_opt;
+  Solution s, s_new, s_opt;
 	double   c, c_new, c_opt;
 	double dc;
 	unsigned int max_I, max_E;
 	int new_sol_chooser;
+
+  s.first = labels;
 
 	ComputeAnySolution(s);
 
