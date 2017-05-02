@@ -3,11 +3,19 @@
 
 #include <vector>
 #include <cstdlib>
-#include "milpData.h"
 
-#define pop 500
+#include "milpData.h"
+#include "optimization.h"
+
+typedef std::vector<std::pair<Solution, double> > GeneticPopulation;
+
+extern unsigned int MEM_POP_SIZE;
+extern GeneticPopulation memory_population;
 
 void genetic_run();
+Solution getRandomSolution_waters_GA();
+unsigned int get_genes_size_waters_GA();
+Solution crossover_waters_GA(const Solution &a, const Solution &b);
 
 static inline int loc_to_id_g(uint8_t b)
 {

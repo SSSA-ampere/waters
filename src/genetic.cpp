@@ -6,16 +6,17 @@
 #include <algorithm>
 #include <ctime>
 
-#include "optimization.h"
 #include "genetic.h"
 #include "RT.h"
 #include "milpData.h"
 
 using namespace std;
 
-typedef std::vector<std::pair<Solution, double> > GeneticPopulation;
+unsigned int MEM_POP_SIZE;
 
-std::vector<RAM> ramg[pop];
+GeneticPopulation memory_population;
+
+//std::vector<RAM> ramg[MEM_POP_SIZE];
 std::random_device rd;
 
 void sortPopulation(GeneticPopulation &population)
@@ -37,7 +38,7 @@ double evaluatePopulation(GeneticPopulation &population)
 
   sortPopulation(population);
 
-  return mean_fitness / pop;
+  return mean_fitness / MEM_POP_SIZE;
 }
 
 Solution ComputeNewSolutionLight(const Solution &s, unsigned int maximum)
@@ -141,7 +142,7 @@ void performMutation(GeneticPopulation &s, unsigned int start, unsigned int end)
   }
 }
 
-Solution crossover(const Solution &a, const Solution &b)
+Solution crossover_waters_GA(const Solution &a, const Solution &b)
 {
   std::default_random_engine generator(rd());
   std::uniform_int_distribution<int> split_dist(0, a.size() - 1);
@@ -188,7 +189,7 @@ void performReproduction(GeneticPopulation &s, unsigned int start, unsigned int 
       mother = parents_dist(generator);
     } while (mother == father);
 
-    s[pop - p - 1].first = crossover(s[mother].first, s[father].first);
+    s[MEM_POP_SIZE - p - 1].first = crossover_waters_GA(s[mother].first, s[father].first);
   }
 }
 
@@ -198,17 +199,36 @@ void performMitosis(GeneticPopulation &s, unsigned int start, unsigned int end, 
     s[offset + p] = s[start + p];
 }
 
-void InitializePopulation(GeneticPopulation &s)
+Solution getRandomSolution_waters_GA()
 {
   std::default_random_engine generator(rd());
   std::uniform_int_distribution<int> distribution(0, 4);
   unsigned int position;
-  RAM ram_temp;
+  Solution s = labels;
+
+  for (unsigned int i = 0; i<s.size(); ++i) {
+    //do {
+      //do {
+      position = distribution(generator);
+      //	}	while (static_cast<RAM_LOC>(1 << position) == LRAM_1);
+    //} while (ramg[p].at(position).available - s[p].first.at(i).bitLen < 0);
+
+    //ramg[p].at(position).available -= s.at(i).bitLen;
+    s.at(i).ram = static_cast<RAM_LOC>(1 << position);
+  }
+
+  return s;
+}
+
+void InitializePopulation(GeneticPopulation &s)
+{
+  //RAM ram_temp;
 
   s.clear();
 
-  for (unsigned int p=0; p<pop; ++p) {
+  for (unsigned int p=0; p<MEM_POP_SIZE; ++p) {
     // Initialize rams
+    /*
     for (int i = 0; i < 4; i++) {
       ram_temp.size = 131072;
       ram_temp.available = 131072;
@@ -217,48 +237,31 @@ void InitializePopulation(GeneticPopulation &s)
     ram_temp.size = 131072 * 2;
     ram_temp.available = 131072 * 2;
     ramg[p].push_back(ram_temp);
-
-    s.push_back(std::make_pair(labels, 0.0));
-
-    for (unsigned int i = 0; i<s[p].first.size(); ++i) {
-      do {
-        //do {
-        position = distribution(generator);
-        //	}	while (static_cast<RAM_LOC>(1 << position) == LRAM_1);
-      } while (ramg[p].at(position).available - s[p].first.at(i).bitLen < 0);
-
-
-      ramg[p].at(position).available -= s[p].first.at(i).bitLen;
-      s[p].first.at(i).ram = static_cast<RAM_LOC>(1 << position);
-    }
+*/
+    s.push_back(std::make_pair(getRandomSolution_waters_GA(), 0.0));
   }
 }
 
+unsigned int get_genes_size_waters_GA()
+{
+  return labels.size();
+}
+
+double initialize_waters_GA(unsigned int population_size)
+{
+  GeneticPopulation &population = memory_population;
+
+  MEM_POP_SIZE = population_size;
+  population.resize(MEM_POP_SIZE);
+  InitializePopulation(population);
+
+  return evaluatePopulation(population);
+}
 
 std::pair<Solution, double> genetic()
 {
   int termination = 1;
   uint64_t epoch = 0;
-
-  const double TO_CLONE_F = 0.05;
-  const double TO_CLONE_TO_F = 0.80;
-
-  const double TO_REPRODUCE_F = 0.15;
-  const double TO_REPRODUCE_CHILDREN_F = TO_REPRODUCE_F;
-
-  const double TO_MUTATE_F = 1 - TO_CLONE_F - TO_REPRODUCE_CHILDREN_F;
-  const double TO_MUTATE_FROM_F = TO_CLONE_F;
-
-
-  const unsigned int TO_CLONE = TO_CLONE_F * pop;
-  const unsigned int TO_CLONE_TO = TO_CLONE_TO_F * pop;
-
-  const unsigned int TO_REPRODUCE = TO_REPRODUCE_F * pop;
-  const unsigned int TO_REPRODUCE_CHILDREN = TO_REPRODUCE_CHILDREN_F * pop;
-
-  const unsigned int TO_MUTATE = TO_MUTATE_F * pop;
-  const unsigned int TO_MUTATE_FROM = TO_MUTATE_FROM_F * pop;
-
 
   time_t now;
   struct tm newyear;
@@ -272,19 +275,41 @@ std::pair<Solution, double> genetic()
 
   cout << "csv name: " << filename << endl << endl;
 
-  GeneticPopulation population;
+  GeneticPopulation &population = memory_population;
+
   Solution s_opt;
   double fit_mean, fit_opt;
 
-  population.resize(pop);
-  InitializePopulation(population);
-  fit_mean = evaluatePopulation(population);
+  fit_mean = initialize_waters_GA(500);
+
+  /*************************************************************************/
+
+  double TO_CLONE_F = 0.05;
+  double TO_CLONE_TO_F = 0.80;
+
+  double TO_REPRODUCE_F = 0.15;
+  double TO_REPRODUCE_CHILDREN_F = TO_REPRODUCE_F;
+
+  double TO_MUTATE_F = 1 - TO_CLONE_F - TO_REPRODUCE_CHILDREN_F;
+  double TO_MUTATE_FROM_F = TO_CLONE_F;
+
+  unsigned int TO_CLONE = TO_CLONE_F * MEM_POP_SIZE;
+  unsigned int TO_CLONE_TO = TO_CLONE_TO_F * MEM_POP_SIZE;
+
+  unsigned int TO_REPRODUCE = TO_REPRODUCE_F * MEM_POP_SIZE;
+  unsigned int TO_REPRODUCE_CHILDREN = TO_REPRODUCE_CHILDREN_F * MEM_POP_SIZE;
+
+  unsigned int TO_MUTATE = TO_MUTATE_F * MEM_POP_SIZE;
+  unsigned int TO_MUTATE_FROM = TO_MUTATE_FROM_F * MEM_POP_SIZE;
+
+  /*************************************************************************/
 
   fit_opt = population[0].second;
   s_opt = population[0].first;
 
   new_optimal_solution_found(fit_opt, s_opt, fit_mean, epoch);
   solution_to_csv(filename, s_opt, fit_opt, fit_mean, epoch);
+
   do {
     ++epoch;
     //selectParents();
