@@ -164,6 +164,7 @@ void copy_in_newstruct(void)
 					lo.id = label_id++;
 					lo.runnable_users.push_back(e.runnables_chain.at(i));
 					lo.ram = GRAM;
+					lo.used_by_CPU = 1 << t.cpu_id;
 					lo.bitLen = 32; // Handcoded -- safe bound (it doesn't really have any impact)
 					labels.push_back(lo);
 
@@ -194,6 +195,7 @@ void copy_in_newstruct(void)
 					lo.runnable_users.push_back(e.runnables_chain.at(i));
 					lo.iswritten = 1;
 					lo.ram = GRAM;
+					lo.used_by_CPU = 1 << t.cpu_id;
 					lo.bitLen = 32; // Handcoded -- safe bound (it doesn't really have any impact)
 					labels.push_back(lo);
 
@@ -243,6 +245,18 @@ void copy_in_newstruct(void)
 	for (int i = 0; i<4; i++)
 		std::sort(CPU[i].begin(), CPU[i].end(),
 			[](const Task &a, const Task &b) { return a.prio > b.prio; });
+
+	// Create vectors of labels used by each core
+	uint8_t usedby;
+	for (Label l : labels) {
+		usedby = l.used_by_CPU;
+		for (unsigned int i = 0; i < 4; i++) {
+			if (usedby & 1) 
+				CPU_labels[i].push_back(l.id);
+			usedby = usedby >> 1;
+		}
+	}
+
 
 	deleter(taskList);
 	deleter(runnableList);

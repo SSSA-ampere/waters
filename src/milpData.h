@@ -87,6 +87,7 @@ extern std::vector<Runnable> runnables;
 extern std::vector<Label> labels;
 extern std::vector<Task> CPU[4];
 extern std::vector<Event_Chain> event_chains;
+extern std::vector<unsigned int> CPU_labels[4];
 extern RAM ram[5];
 extern uint64_t max_deadline;
 
