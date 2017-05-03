@@ -125,21 +125,25 @@ Solution ComputeNewSolutionRAM2Others(const Solution &s, unsigned int maximum)
   return newSol;
 }
 
-void performMutation(GeneticPopulation &s, unsigned int start, unsigned int end)
+void mutatate_chromosome_waters_GA(Solution &s)
 {
   std::default_random_engine generator(rd());
   std::uniform_int_distribution<int> choose_mutation(0, 100);
   unsigned int mutation_kind;
 
-  for (unsigned int p = start; p < end; ++p) {
-    mutation_kind = choose_mutation(generator);
-    if (mutation_kind < 5)
-      s[p].first = ComputeNewSolutionRAM2RAM(s[p].first, 100);
-    else if (mutation_kind < 15)
-      s[p].first = ComputeNewSolutionRAM2Others(s[p].first, 200);
-    else
-      s[p].first = ComputeNewSolutionLight(s[p].first, 100);
-  }
+  mutation_kind = choose_mutation(generator);
+  if (mutation_kind < 5)
+    s = ComputeNewSolutionRAM2RAM(s, 100);
+  else if (mutation_kind < 15)
+    s = ComputeNewSolutionRAM2Others(s, 200);
+  else
+    s = ComputeNewSolutionLight(s, 100);
+}
+
+void performMutation(GeneticPopulation &s, unsigned int start, unsigned int end)
+{
+  for (unsigned int p = start; p < end; ++p)
+    mutatate_chromosome_waters_GA(s[p].first);
 }
 
 Solution crossover_waters_GA(const Solution &a, const Solution &b)

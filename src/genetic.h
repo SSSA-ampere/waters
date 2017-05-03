@@ -16,6 +16,7 @@ void genetic_run();
 Solution getRandomSolution_waters_GA();
 unsigned int get_genes_size_waters_GA();
 Solution crossover_waters_GA(const Solution &a, const Solution &b);
+void mutatate_chromosome_waters_GA(Solution &s);
 
 static inline int loc_to_id_g(uint8_t b)
 {
