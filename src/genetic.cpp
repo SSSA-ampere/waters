@@ -14,6 +14,8 @@ using namespace std;
 
 unsigned int MEM_POP_SIZE;
 
+double TOL_FIT = 0.01;
+
 GeneticPopulation memory_population;
 
 //std::vector<RAM> ramg[MEM_POP_SIZE];
@@ -277,6 +279,8 @@ std::pair<Solution, double> genetic()
 
   string filename = string("result_") + std::to_string(seconds) + string(".csv");
 
+  string filename_step = string("step_result_") + std::to_string(seconds) + string(".csv");
+
   cout << "csv name: " << filename << endl << endl;
 
   GeneticPopulation &population = memory_population;
@@ -326,6 +330,11 @@ std::pair<Solution, double> genetic()
     fit_mean = evaluatePopulation(population);
 
     if (fit_opt > population[0].second) {
+		if (fit_opt - population[0].second > TOL_FIT) {
+			cout << endl << "Response time step found" << endl;
+			solution_to_csv(filename_step, s_opt, fit_opt, fit_mean, epoch - 1);
+			solution_to_csv(filename_step, population[0].first, population[0].second, fit_mean, epoch);
+		}
       fit_opt = population[0].second;
       s_opt = population[0].first;
       new_optimal_solution_found(fit_opt, s_opt, fit_mean, epoch);
