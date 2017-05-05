@@ -7,6 +7,7 @@
 #include <limits>
 
 using namespace std;
+string task_name;
 
 static inline double Ii(const Task &k, double t)
 {
@@ -190,7 +191,6 @@ double computeResponseTime(const std::vector<Label> &s)
 	double Rij_instr, Rij_acc, Rij_block;
 	double rt_normalized;
 	double max_rt_normalized = 0;
-	string task_name;
 
 	for (unsigned int i = 0; i < 4; ++i) {
 		// foreach core
@@ -221,6 +221,11 @@ double computeResponseTime(const std::vector<Label> &s)
 	}
 	//cout << task_name << " has the worst response time" << endl;
 	return max_rt_normalized;
+}
+
+void worstResponseTimeTask(const std::vector<Label> &s) {
+	computeResponseTime(s);
+	cout << task_name << " has the worst response time" << endl;
 }
 
 static inline double Ii_lb(const Task &k, double t)

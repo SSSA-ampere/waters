@@ -127,6 +127,71 @@ Solution ComputeNewSolutionRAM2Others(const Solution &s, unsigned int maximum)
   return newSol;
 }
 
+
+Solution ComputeNewSolutionLowRAM2Others(const Solution &s, unsigned int maximum)
+{
+	std::default_random_engine generator(rd());
+	std::uniform_int_distribution<int> dist_cpu(0, 3);
+	std::uniform_int_distribution<int> dist_ram(0, 4);
+	std::uniform_int_distribution<int> dist_noise(1, maximum);
+	std::uniform_int_distribution<int> dist_chooser(0, 100);
+	Solution newSol(s);
+	unsigned int noise = dist_noise(generator);
+	unsigned int chooser = dist_chooser(generator);
+	unsigned int src_cpu = dist_cpu(generator);
+
+	std::vector<int> src_label[5];
+
+	// Create array of label disposition in memories
+	for (unsigned int li : CPU_labels[src_cpu]) {
+		src_label[loc_to_id(labels.at(li).ram)].push_back(li);
+	}
+
+	unsigned int l_size = CPU_labels[src_cpu].size();
+	std::vector<unsigned int> notempty_loc;
+	std::vector<double> prob;
+	double tot_prob = 0;
+
+	// Associate probability inversely prop to number of labels (and remove empty memories)
+	for (unsigned int si = 0; si < 5; ++si) {
+		if (src_label[si].size() != 0) {
+			prob.push_back(static_cast<double>(1.0 / src_label[si].size()));
+			notempty_loc.push_back(si);
+			tot_prob += static_cast<double>(1.0 / src_label[si].size());
+		}
+	}
+
+	unsigned int norm_prob = 0;
+	unsigned int src_ram;
+
+	// Normalize probabilities and choose memory
+	for (unsigned int i = 0; i < notempty_loc.size(); ++i) {
+		norm_prob += ceil(prob.at(i) * 100 / tot_prob);
+		if (chooser <= norm_prob) {
+			src_ram = notempty_loc.at(i);
+			break;
+		}
+	}
+
+	RAM_LOC dst;
+	RAM_LOC src;
+	src = static_cast<RAM_LOC>(1 << src_ram);
+
+	// Redistribute casually some labels
+	for (int i = 0; (i < noise) && (i + 1 < src_label[src_ram].size()); ++i) {
+		std::uniform_int_distribution<int> dist_label_src(0, src_label[src_ram].size() - 1);
+		int dst_pos = dist_label_src(generator);
+
+		do {
+			dst = static_cast<RAM_LOC>(1 << dist_ram(generator));
+		} while (dst == src);
+
+		newSol.at(src_label[src_ram].at(dst_pos)).ram = dst;
+	}
+
+	return newSol;
+}
+
 void mutatate_chromosome_waters_GA(Solution &s)
 {
   std::default_random_engine generator(rd());
@@ -135,8 +200,10 @@ void mutatate_chromosome_waters_GA(Solution &s)
 
   mutation_kind = choose_mutation(generator);
   if (mutation_kind < 5)
+	s = ComputeNewSolutionLowRAM2Others(s, 10);
+  else if (mutation_kind < 10)
     s = ComputeNewSolutionRAM2RAM(s, 100);
-  else if (mutation_kind < 15)
+  else if (mutation_kind < 20)
     s = ComputeNewSolutionRAM2Others(s, 200);
   else
     s = ComputeNewSolutionLight(s, 100);
@@ -288,7 +355,7 @@ std::pair<Solution, double> genetic()
   Solution s_opt;
   double fit_mean, fit_opt;
 
-  fit_mean = initialize_waters_GA(500);
+  fit_mean = initialize_waters_GA(200);
 
   /*************************************************************************/
 
@@ -331,12 +398,14 @@ std::pair<Solution, double> genetic()
 
     if (fit_opt > population[0].second) {
 		if (fit_opt - population[0].second > TOL_FIT) {
-			cout << endl << "Response time step found" << endl;
+			cout << endl << "Response time step found" << endl << endl;
 			solution_to_csv(filename_step, s_opt, fit_opt, fit_mean, epoch - 1);
 			solution_to_csv(filename_step, population[0].first, population[0].second, fit_mean, epoch);
 		}
       fit_opt = population[0].second;
       s_opt = population[0].first;
+
+	  worstResponseTimeTask(s_opt);
       new_optimal_solution_found(fit_opt, s_opt, fit_mean, epoch);
       solution_to_csv(filename, s_opt, fit_opt, fit_mean, epoch);
     } else {

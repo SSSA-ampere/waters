@@ -10,5 +10,6 @@ double min_slack(const std::vector<Label> &s);
 
 void compute_RT_lb();
 double computeResponseTime(const std::vector<Label> &s);
+void worstResponseTimeTask(const std::vector<Label> &s);
 
 #endif
