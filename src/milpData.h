@@ -49,7 +49,7 @@ struct Runnable { // add bool = response time important (end of task or inchain)
 	std::vector<unsigned int> labels_w_access;
 };
 
-struct Task { // TODO inserire periodico o ISR
+struct Task {
 	std::string name;
 	unsigned int id;
 	unsigned int cpu_id;

@@ -199,9 +199,9 @@ void mutatate_chromosome_waters_GA(Solution &s)
   unsigned int mutation_kind;
 
   mutation_kind = choose_mutation(generator);
-  if (mutation_kind < 5)
-	s = ComputeNewSolutionLowRAM2Others(s, 10);
-  else if (mutation_kind < 10)
+  if (mutation_kind < 10)
+	s = ComputeNewSolutionLowRAM2Others(s, 20);
+  else if (mutation_kind < 15)
     s = ComputeNewSolutionRAM2RAM(s, 100);
   else if (mutation_kind < 20)
     s = ComputeNewSolutionRAM2Others(s, 200);
@@ -359,23 +359,23 @@ std::pair<Solution, double> genetic()
 
   /*************************************************************************/
 
-  double TO_CLONE_F = 0.05;
-  double TO_CLONE_TO_F = 0.80;
+  double CLONE_F = 0.10;
+  double CLONE_TO_F = 0.70;
 
-  double TO_REPRODUCE_F = 0.15;
-  double TO_REPRODUCE_CHILDREN_F = TO_REPRODUCE_F;
+  double REPRODUCE_F = 0.10;
+  double REPRODUCE_CHILDREN_F = 0.20;
 
-  double TO_MUTATE_F = 1 - TO_CLONE_F - TO_REPRODUCE_CHILDREN_F;
-  double TO_MUTATE_FROM_F = TO_CLONE_F;
+  double MUTATE_F = 1 - REPRODUCE_CHILDREN_F;
+  double MUTATE_FROM_F = CLONE_F+0.05;
 
-  unsigned int TO_CLONE = TO_CLONE_F * MEM_POP_SIZE;
-  unsigned int TO_CLONE_TO = TO_CLONE_TO_F * MEM_POP_SIZE;
+  unsigned int CLONE = CLONE_F * MEM_POP_SIZE;
+  unsigned int CLONE_TO = CLONE_TO_F * MEM_POP_SIZE;
 
-  unsigned int TO_REPRODUCE = TO_REPRODUCE_F * MEM_POP_SIZE;
-  unsigned int TO_REPRODUCE_CHILDREN = TO_REPRODUCE_CHILDREN_F * MEM_POP_SIZE;
+  unsigned int REPRODUCE_TO = REPRODUCE_F * MEM_POP_SIZE;
+  unsigned int REPRODUCE_CHILDREN = REPRODUCE_CHILDREN_F * MEM_POP_SIZE;
 
-  unsigned int TO_MUTATE = TO_MUTATE_F * MEM_POP_SIZE;
-  unsigned int TO_MUTATE_FROM = TO_MUTATE_FROM_F * MEM_POP_SIZE;
+  unsigned int MUTATE_TO = MUTATE_F * MEM_POP_SIZE;
+  unsigned int MUTATE_FROM = MUTATE_FROM_F * MEM_POP_SIZE;
 
   /*************************************************************************/
 
@@ -389,9 +389,9 @@ std::pair<Solution, double> genetic()
     ++epoch;
     //selectParents();
     //performReproduction();
-    performMitosis(population, 0, TO_CLONE, TO_CLONE_TO);
-    performReproduction(population, 0, TO_REPRODUCE, TO_REPRODUCE_CHILDREN);
-    performMutation(population, TO_MUTATE_FROM, TO_MUTATE_FROM + TO_MUTATE);
+    performMitosis(population, 0, CLONE, CLONE_TO);
+    performReproduction(population, 0, REPRODUCE_TO, REPRODUCE_CHILDREN);
+    performMutation(population, MUTATE_FROM, MUTATE_TO);
     //updatePopulation();
 
     fit_mean = evaluatePopulation(population);
@@ -405,7 +405,7 @@ std::pair<Solution, double> genetic()
       fit_opt = population[0].second;
       s_opt = population[0].first;
 
-	  worstResponseTimeTask(s_opt);
+	  //worstResponseTimeTask(s_opt);
       new_optimal_solution_found(fit_opt, s_opt, fit_mean, epoch);
       solution_to_csv(filename, s_opt, fit_opt, fit_mean, epoch);
     } else {

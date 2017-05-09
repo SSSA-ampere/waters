@@ -8,6 +8,7 @@
 
 using namespace std;
 string task_name;
+double R_worst_bl, R_worst_ac, R_worst_ex;
 
 static inline double Ii(const Task &k, double t)
 {
@@ -216,16 +217,19 @@ double computeResponseTime(const std::vector<Label> &s)
 			if (max_rt_normalized < rt_normalized) {
 				max_rt_normalized = rt_normalized;
 				task_name = task_ij.name;
+				R_worst_ex = Rij_instr;
+				R_worst_ac = Rij_acc;
+				R_worst_bl = Rij_block;
 			}
 		}
 	}
-	//cout << task_name << " has the worst response time" << endl;
+
 	return max_rt_normalized;
 }
 
 void worstResponseTimeTask(const std::vector<Label> &s) {
 	computeResponseTime(s);
-	cout << task_name << " has the worst response time" << endl;
+	cout << task_name << " has the worst response time: " << " R_ex: " << R_worst_ex << " R_ac: " << R_worst_ac << " R_bl: " << R_worst_bl << endl;
 }
 
 static inline double Ii_lb(const Task &k, double t)

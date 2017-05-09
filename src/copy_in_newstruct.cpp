@@ -4,7 +4,7 @@
 #include <algorithm>
 
 const unsigned int max_prio = 50;
-const bool LET = 1;
+const bool LET = true;
 const double scaling_factor = 1;
 
 
@@ -185,6 +185,8 @@ void copy_in_newstruct(void)
 					t.labels_w_access.push_back(1);
 					t.labels_r.push_back(e.labels.at(i - 1));
 					t.labels_r_access.push_back(1);
+					t.inflated_wcet += cycles2us(2);
+
 				}
 
 				if (i < e.labels.size()) { // Reads local copy and writes in correct label
@@ -216,6 +218,7 @@ void copy_in_newstruct(void)
 					t.labels_r_access.push_back(1);
 					t.labels_w.push_back(e.labels.at(i));
 					t.labels_w_access.push_back(1);
+					t.inflated_wcet += cycles2us(2);
 				}
 
 				isacopy = false;
@@ -231,6 +234,7 @@ void copy_in_newstruct(void)
 							tp.labels_r_access.push_back(1);
 							tp.labels_w.push_back(t.labels_w.at(j));
 							tp.labels_w_access.push_back(1);
+							tp.inflated_wcet += cycles2us(2);
 						}
 					}
 				}
