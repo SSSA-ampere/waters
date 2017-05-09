@@ -130,7 +130,7 @@ given_solution_result = 1.32025
 line_2_1 = p2.plot(epoch, y2, 'k', label="Best result in population")
 line_2_2 = p2.plot(epoch, fit_mean, 'g', label="Mean result in population")
 line_2_3 = p2.plot(epoch, [given_solution_result] * len(y2), 'r--', label="Challenge given solution result")
-line_2_4 = p2.plot(epoch, [1] * len(y2), 'b--', label="Necessary condition for schedulability")
+line_2_4 = p2.plot(epoch, [1] * len(y2), 'b--', label="Schedulability bound")
 
 FIT_MIN = y2[len(y2) - 1] if y2[len(y2) - 1] < 1 else 1
 FIT_MAX = y2[0] if y2[0] > given_solution_result else given_solution_result
