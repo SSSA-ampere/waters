@@ -546,9 +546,25 @@ void initialize_waters_data()
   compute_RT_lb();
 }
 
+void compute_best_fitness()
+{
+	double fit = 0;
+	for (int i = 0; i < 4; ++i) {
+		for (Task &t : CPU[i]) {
+			if (t.RT_lb/t.deadline > fit) {
+				fit = t.RT_lb / t.deadline;
+			}
+		}
+		cout << "Bigger R/D: " << fit << endl;
+		fit = 0;
+	}
+}
+
 int main_waters()
 {
   initialize_waters_data();
+
+  compute_best_fitness();
 
   double RT_init = computeResponseTime(labels);
   std::cout << "Solution with challenge-given solution: " << RT_init << std::endl;

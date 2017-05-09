@@ -40,5 +40,6 @@ static inline int loc_to_id(uint8_t b)
 }
 
 void solution_to_csv(const std::string &filename, const Solution &s, double cost, double fit_mean, uint64_t epoch);
+void distribution_to_csv(const std::string &filename, const Solution &s, uint64_t epoch);
 
 #endif

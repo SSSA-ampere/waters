@@ -333,8 +333,8 @@ double initialize_waters_GA(unsigned int population_size)
 
 std::pair<Solution, double> genetic()
 {
-  int termination = 1;
   uint64_t epoch = 0;
+  uint64_t MAX_EPOCH = 20000;
 
   time_t now;
   struct tm newyear;
@@ -347,6 +347,8 @@ std::pair<Solution, double> genetic()
   string filename = string("result_") + std::to_string(seconds) + string(".csv");
 
   string filename_step = string("step_result_") + std::to_string(seconds) + string(".csv");
+
+  string filename_dist = string("dist_result_") + std::to_string(seconds) + string(".csv");
 
   cout << "csv name: " << filename << endl << endl;
 
@@ -408,10 +410,11 @@ std::pair<Solution, double> genetic()
 	  //worstResponseTimeTask(s_opt);
       new_optimal_solution_found(fit_opt, s_opt, fit_mean, epoch);
       solution_to_csv(filename, s_opt, fit_opt, fit_mean, epoch);
+	  distribution_to_csv(filename_dist, s_opt, epoch);
     } else {
       cout << "." << endl;
     }
-  } while (termination != 0);
+  } while (epoch <= MAX_EPOCH);
 
   return std::make_pair(s_opt, fit_opt);
 }
