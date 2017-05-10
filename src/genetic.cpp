@@ -15,6 +15,9 @@ using namespace std;
 unsigned int MEM_POP_SIZE;
 
 double TOL_FIT = 0.01;
+uint64_t epoch;
+uint64_t MAX_EPOCH = 30000;
+unsigned int mut_gap = 0;
 
 GeneticPopulation memory_population;
 
@@ -178,7 +181,7 @@ Solution ComputeNewSolutionLowRAM2Others(const Solution &s, unsigned int maximum
 	src = static_cast<RAM_LOC>(1 << src_ram);
 
 	// Redistribute casually some labels
-	for (int i = 0; (i < noise) && (i + 1 < src_label[src_ram].size()); ++i) {
+	for (int i = 0; (i < noise) && (i < src_label[src_ram].size()); ++i) {
 		std::uniform_int_distribution<int> dist_label_src(0, src_label[src_ram].size() - 1);
 		int dst_pos = dist_label_src(generator);
 
@@ -199,12 +202,15 @@ void mutatate_chromosome_waters_GA(Solution &s)
   unsigned int mutation_kind;
 
   mutation_kind = choose_mutation(generator);
-  if (mutation_kind < 10)
-	s = ComputeNewSolutionLowRAM2Others(s, 20);
-  else if (mutation_kind < 15)
-    s = ComputeNewSolutionRAM2RAM(s, 100);
-  else if (mutation_kind < 20)
-    s = ComputeNewSolutionRAM2Others(s, 200);
+
+  if (epoch > 3000)
+	  mut_gap = 20;
+  if (mutation_kind < (10 + mut_gap))
+	s = ComputeNewSolutionLowRAM2Others(s, 50);
+  else if (mutation_kind < 40)
+    s = ComputeNewSolutionRAM2RAM(s, 200);
+  else if (mutation_kind < (70 - mut_gap))
+    s = ComputeNewSolutionRAM2Others(s, 100);
   else
     s = ComputeNewSolutionLight(s, 100);
 }
@@ -333,8 +339,7 @@ double initialize_waters_GA(unsigned int population_size)
 
 std::pair<Solution, double> genetic()
 {
-  uint64_t epoch = 0;
-  uint64_t MAX_EPOCH = 20000;
+  epoch = 0;
 
   time_t now;
   struct tm newyear;
