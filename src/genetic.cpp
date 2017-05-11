@@ -9,6 +9,7 @@
 #include "genetic.h"
 #include "RT.h"
 #include "milpData.h"
+#include "analyse_data.h"
 
 using namespace std;
 
@@ -17,7 +18,6 @@ unsigned int MEM_POP_SIZE;
 double TOL_FIT = 0.01;
 uint64_t epoch;
 uint64_t MAX_EPOCH = 30000;
-unsigned int mut_gap = 0;
 
 GeneticPopulation memory_population;
 
@@ -200,17 +200,18 @@ void mutatate_chromosome_waters_GA(Solution &s)
   std::default_random_engine generator(rd());
   std::uniform_int_distribution<int> choose_mutation(0, 100);
   unsigned int mutation_kind;
+  unsigned int mut_gap = 0;
 
   mutation_kind = choose_mutation(generator);
 
-  if (epoch > 3000)
-	  mut_gap = 20;
+  if (epoch > 2000)
+	  mut_gap = 30;
   if (mutation_kind < (10 + mut_gap))
 	s = ComputeNewSolutionLowRAM2Others(s, 50);
-  else if (mutation_kind < 40)
+  else if (mutation_kind < 40 + mut_gap/3)
     s = ComputeNewSolutionRAM2RAM(s, 200);
-  else if (mutation_kind < (70 - mut_gap))
-    s = ComputeNewSolutionRAM2Others(s, 100);
+  else if (mutation_kind < (70 - mut_gap/3))
+    s = ComputeNewSolutionRAM2Others(s, 200);
   else
     s = ComputeNewSolutionLight(s, 100);
 }
@@ -367,10 +368,10 @@ std::pair<Solution, double> genetic()
   /*************************************************************************/
 
   double CLONE_F = 0.10;
-  double CLONE_TO_F = 0.70;
+  double CLONE_TO_F = 0.60;
 
-  double REPRODUCE_F = 0.10;
-  double REPRODUCE_CHILDREN_F = 0.20;
+  double REPRODUCE_F = 0.15;
+  double REPRODUCE_CHILDREN_F = 0.30;
 
   double MUTATE_F = 1 - REPRODUCE_CHILDREN_F;
   double MUTATE_FROM_F = CLONE_F+0.05;
@@ -388,6 +389,7 @@ std::pair<Solution, double> genetic()
 
   fit_opt = population[0].second;
   s_opt = population[0].first;
+
 
   new_optimal_solution_found(fit_opt, s_opt, fit_mean, epoch);
   solution_to_csv(filename, s_opt, fit_opt, fit_mean, epoch);

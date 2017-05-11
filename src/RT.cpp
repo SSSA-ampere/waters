@@ -43,7 +43,7 @@ double Ri1(const Task &k, const std::vector<Label> &s)
 	return R;
 }
 
-static inline double Interf(const Task &k, double t)
+double Interf(const Task &k, double t)
 {
 	double result = 0;
 	double ceiling;
@@ -188,7 +188,7 @@ double computeBlockingTime(const std::vector<Label> &s, const Task &k, double t)
 
 double computeResponseTime(const std::vector<Label> &s)
 {
-	double Rij, Rij_old;
+	double Rij, Rij_old, Rij_appo;
 	double Rij_instr, Rij_acc, Rij_block;
 	double rt_normalized;
 	double max_rt_normalized = 0;
@@ -199,10 +199,10 @@ double computeResponseTime(const std::vector<Label> &s)
 		for (unsigned int j = 0; j<CPU[i].size(); ++j) {
 			// foreach task ORDERED BY DECREASING PRIORITY
 			Task &task_ij = CPU[i].at(j);
+			Rij_appo = task_ij.RT_lb;
 
 			do {
-				Rij_old = task_ij.response_time1;
-
+				Rij_old = Rij_appo;
 				Rij_instr = task_ij.exec_time + Interf(task_ij, Rij_old);
 				Rij_acc = computeSelfAccessTime(s, task_ij, Rij_old);
 				Rij_block = computeBlockingTime(s, task_ij, Rij_old);
@@ -210,6 +210,7 @@ double computeResponseTime(const std::vector<Label> &s)
 				Rij = Rij_instr + Rij_acc + Rij_block;
 
 				task_ij.response_time1 = Rij;
+				Rij_appo = Rij;
 
 			} while (Rij != Rij_old);
 

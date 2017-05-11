@@ -16,7 +16,8 @@ set (SOURCE_FILES
   RT.cpp
   Runnable2.cpp
   strtools.cpp
-  Task2.cpp)
+  Task2.cpp
+  analyse_data.cpp)
 
 add_executable (${PROJECT_NAME} ${SOURCE_FILES})
 
