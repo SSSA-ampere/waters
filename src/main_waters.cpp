@@ -16,6 +16,8 @@
 #include "genetic.h"
 #include "RT.h"
 
+#include "analyse_data.h"
+
 #include <vector>
 #include <map>
 #include <iostream>
@@ -565,6 +567,8 @@ int main_waters()
   initialize_waters_data();
 
   compute_best_fitness();
+
+  extractRunnableData();
 
   double RT_init = computeResponseTime(labels);
   std::cout << "Solution with challenge-given solution: " << RT_init << std::endl;
