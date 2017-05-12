@@ -92,13 +92,15 @@ double computeAccessTime(const Task &k, uint64_t n_acc[]) // time spent for task
 	return acc_time;
 }
 
-void computeNumAccesses(const std::vector<Label> &s, const Task &k, uint64_t tot_acc[], double t)
+void computeNumAccesses(const std::vector<Label> &s, const Task &k, uint64_t tot_acc[], double t, bool best)
 {
 	uint64_t n_acc[5] = { 0,0,0,0,0 };
 	// compute number of job accesses to memory
 	jobAccessToMem(k, s, n_acc);
 
 	uint64_t job_act = static_cast<uint64_t>(ceil(static_cast<double> (t) / k.period));
+	if (best)
+		job_act--;
 
 	for (unsigned int m = 0; m < 5; m++) {
 		// foreach memory
@@ -138,9 +140,8 @@ double computeBlockingTime(const std::vector<Label> &s, const Task &k, double t)
 	double Rij;
 
 	for (Task const &tj : CPU[k.cpu_id]) {
-		if (tj.prio >= k.prio) {
+		if (tj.prio >= k.prio)
 			computeNumAccesses(s, tj, self_acc, t);
-		}
 	}
 
 	for (unsigned int i = 0; i < 4; ++i) {

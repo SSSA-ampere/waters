@@ -3,8 +3,10 @@
 
 #include "milpData.h"
 #include "RT.h"
+#include "optimization.h"
 
 void extractRunnableData();
+void computeChainRt(const Solution &s);
 
 struct Label_listing {
 	std::vector<unsigned int> labels_r;
@@ -20,7 +22,9 @@ struct Event_Chain_RT {
 	std::vector<double> bestRt;
 	std::vector<double> worstRt;
 	std::vector<uint64_t> period;
+	std::vector<unsigned int> prio;
 	std::vector<std::string> run_names;
+	std::vector<unsigned int> task_id;
 	std::vector<Label_listing> labels;
 };
 

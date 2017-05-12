@@ -396,7 +396,7 @@ double initialize_waters_GA(unsigned int population_size)
 
 std::pair<Solution, double> genetic()
 {
-  solution_from_csv("result_11357313.csv", 3);
+  //solution_from_csv("result_11357313.csv", 3);
 
   epoch = 0;
 
