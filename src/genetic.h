@@ -29,4 +29,7 @@ static inline int loc_to_id_g(uint8_t b)
 	return counter;
 }
 
+Solution solution_from_csv(const std::string &fileName,
+                           unsigned int to_skip = 3);
+
 #endif
