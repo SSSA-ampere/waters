@@ -2,6 +2,8 @@
 #include "genetic.h"
 #include "optimization.h"
 
+#include <cmath>
+
 std::vector<Event_Chain_RT> EventChainsRt;
 
 using namespace std;
