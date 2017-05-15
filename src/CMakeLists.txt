@@ -22,6 +22,13 @@ set (SOURCE_FILES
 add_executable (${PROJECT_NAME} ${SOURCE_FILES})
 
 add_definitions(-DMODEL_PATH="${MODEL_PATH}")
+
+if (USE_LET_MODEL)
+  add_definitions(-DUSE_LET_MODEL=true)
+else(USE_LET_MODEL)
+  add_definitions(-DUSE_LET_MODEL=false)
+endif(USE_LET_MODEL)
+
 target_compile_features (${PROJECT_NAME} PRIVATE cxx_range_for)
 
 add_library (tinyxml STATIC tinyxml/tinyxml2.cpp)

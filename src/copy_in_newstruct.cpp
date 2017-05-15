@@ -4,7 +4,6 @@
 #include <algorithm>
 
 const unsigned int max_prio = 50;
-const bool LET = false;
 const double scaling_factor = 1;
 
 
@@ -137,7 +136,9 @@ void copy_in_newstruct(void)
 	}
 
 	// Adding High priority WR tasks for LET architecture
-	if (LET) {
+  if (USE_LET_MODEL) {
+
+    cout << endl << "Using LET model" << endl << endl;
 
 		unsigned int label_id = labels.size();
 		unsigned int num_std_tasks = task_id_counter;
