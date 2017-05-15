@@ -1,7 +1,10 @@
 #include "analyse_data.h"
 #include "genetic.h"
+#include "optimization.h"
 
 std::vector<Event_Chain_RT> EventChainsRt;
+
+using namespace std;
 
 double InterfRun(const Task &k, double t, bool best)
 {
@@ -212,6 +215,18 @@ void extractRunnableData()
 }
 
 
+void printRt(const std::vector<Event_Chain_RT> &e) {
+
+	for (unsigned int i = 0; i < e.size(); ++i) {
+		cout << endl << "Event chain number " << e.at(i).id << ":" << endl;
+		cout << "Runnable name\t Best RT\t Worst RT\t Period" << endl;
+		for (unsigned int j = 0; j < e.at(i).run_names.size(); ++j) {
+			cout << e.at(i).run_names.at(j) << "\t" << e.at(i).bestRt.at(j) << "\t" << e.at(i).worstRt.at(j) << "\t" << e.at(i).period.at(j) << endl;
+		}
+	}
+
+}
+
 
 void computeChainRt(const Solution &s)
 {
@@ -269,5 +284,6 @@ void computeChainRt(const Solution &s)
 			e.bestRt.at(i) = R;
 		}
 	}
+	printRt(EventChainsRt);
 }
 

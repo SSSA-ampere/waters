@@ -3,10 +3,9 @@
 
 #include "milpData.h"
 #include "RT.h"
-#include "optimization.h"
 
 void extractRunnableData();
-void computeChainRt(const Solution &s);
+void computeChainRt(const std::vector<Label> &s);
 
 struct Label_listing {
 	std::vector<unsigned int> labels_r;
@@ -29,6 +28,9 @@ struct Event_Chain_RT {
 };
 
 extern std::vector<Event_Chain_RT> EventChainsRt;
+
+void printRt(const std::vector<Event_Chain_RT> &e);
+
 
 #endif // !ANALYSE_DATA_H__
 

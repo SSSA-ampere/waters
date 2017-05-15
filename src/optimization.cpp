@@ -1,9 +1,12 @@
 #include "optimization.h"
 #include "milpData.h"
 
+
 #include <iostream>
 #include <string>
 #include <fstream>
+
+using namespace std;
 
 void printSolution(const Solution &s)
 {

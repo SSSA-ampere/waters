@@ -5,6 +5,7 @@
 #include <ctime>
 
 #include "milpData.h"
+#include "analyse_data.h"
 
 typedef std::vector<Label> Solution;
 
