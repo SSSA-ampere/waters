@@ -448,8 +448,6 @@ std::pair<Solution, double> genetic()
   fit_opt = population[0].second;
   s_opt = population[0].first;
 
-  computeChainRt(s_opt);
-
 
   new_optimal_solution_found(fit_opt, s_opt, fit_mean, epoch);
   solution_to_csv(filename, s_opt, fit_opt, fit_mean, epoch);
@@ -483,10 +481,9 @@ std::pair<Solution, double> genetic()
     }
   } while (epoch <= MAX_EPOCH);
 
-  return std::make_pair(s_opt, fit_opt);
-
   computeChainRt(s_opt);
 
+  return std::make_pair(s_opt, fit_opt);
 }
 
 void genetic_run()

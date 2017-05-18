@@ -31,12 +31,12 @@ void solution_to_csv(const std::string &filename, const Solution &s, double cost
   }
 
   file << cost;
-  file << ',' << fit_mean;
-  file << ',' << epoch;
+  //file << ',' << fit_mean;
+  //file << ',' << epoch;
   for (Label const &v : s) {
     file << "," << loc_to_id(v.ram);
   }
-  file << std::endl;
+  //file << std::endl;
 
   file.close();
 }

@@ -5,6 +5,7 @@
 #include <iostream>
 #include <cassert>
 #include <limits>
+#include <algorithm>
 
 using namespace std;
 string task_name;
@@ -131,7 +132,6 @@ double computeSelfAccessTime(const std::vector<Label> &s, const Task &k, double 
 
 double computeBlockingTime(const std::vector<Label> &s, const Task &k, double t)
 {
-	uint64_t crosscore_acc[5] = { 0,0,0,0,0 };
 	uint64_t self_acc[5] = { 0,0,0,0,0 };
 	uint64_t job_acc[5] = { 0,0,0,0,0 };
 	uint64_t core_acc[5] = { 0,0,0,0,0 };
@@ -148,16 +148,14 @@ double computeBlockingTime(const std::vector<Label> &s, const Task &k, double t)
 		if (i != k.cpu_id) {
 			// foreach core different from i-th core
 
-			for (unsigned int m = 0; m < 5; ++m) {
-				crosscore_acc[m] = 0;
+			for (unsigned int m = 0; m < 5; ++m) 
 				core_acc[m] = 0;
-			}
 
 			for (unsigned int j = 0; j < CPU[i].size(); ++j) {
 				// foreach task
 				Task &task_ij = CPU[i].at(j);
 
-				Rij = task_ij.response_time1; //TODO convert to response_time
+				Rij = task_ij.response_time;
 
 				job_act = static_cast<uint64_t>(ceil(static_cast<double>((Rij + t) / task_ij.period)));
 
@@ -166,8 +164,6 @@ double computeBlockingTime(const std::vector<Label> &s, const Task &k, double t)
 
 				for (unsigned int m = 0; m < 5; m++) {
 					core_acc[m] += job_act * job_acc[m];
-					if (m != i)
-						crosscore_acc[m] += job_act * job_acc[m];
 					job_acc[m] = 0;
 				}
 			}
@@ -194,26 +190,94 @@ double computeResponseTime(const std::vector<Label> &s)
 	double rt_normalized;
 	double max_rt_normalized = 0;
 
+	bool atLeastOneRijChanged = false;
+
+	do {
+		atLeastOneRijChanged = false;
+		for (unsigned int i = 0; i < 4; ++i) {
+			// foreach core
+
+			for (unsigned int j = 0; j<CPU[i].size(); ++j) {
+				// foreach task ORDERED BY DECREASING PRIORITY
+
+				Task &task_ij = CPU[i].at(j);
+				Rij_appo = task_ij.RT_lb;
+
+				do {
+					Rij_old = Rij_appo;
+					Rij_instr = task_ij.exec_time + Interf(task_ij, Rij_old);
+					Rij_acc = computeSelfAccessTime(s, task_ij, Rij_old);
+					Rij_block = computeBlockingTime(s, task_ij, Rij_old);
+
+					Rij = Rij_instr + Rij_acc + Rij_block;
+
+					task_ij.response_time1 = Rij;
+					Rij_appo = Rij;
+
+				} while (Rij != Rij_old);
+
+				rt_normalized = task_ij.response_time1 / task_ij.deadline;
+				if (max_rt_normalized < rt_normalized) {
+					max_rt_normalized = rt_normalized;
+					task_name = task_ij.name;
+					R_worst_ex = Rij_instr;
+					R_worst_ac = Rij_acc;
+					R_worst_bl = Rij_block;
+				}
+				if (task_ij.response_time1 != task_ij.response_time)
+					atLeastOneRijChanged = true;
+				task_ij.response_time = task_ij.response_time1;
+			}
+		}
+	} while (atLeastOneRijChanged);
+	
+	return max_rt_normalized;
+}
+
+
+void reorder(std::vector<uint64_t> &S)
+{
+	std::sort(S.begin(), S.end(),
+		[](const uint64_t &a, const uint64_t &b) { return a < b; });
+}
+
+double computeMilpResponseTime(const std::vector<Label> &s) 
+{
+	double Rij;
+	double Rij_instr, Rij_acc, Rij_block;
+	double rt_normalized;
+	double max_rt_normalized = 0;
+
 	for (unsigned int i = 0; i < 4; ++i) {
 		// foreach core
 
-		for (unsigned int j = 0; j<CPU[i].size(); ++j) {
+		for (unsigned int j = 0; j < CPU[i].size(); ++j) {
 			// foreach task ORDERED BY DECREASING PRIORITY
-			Task &task_ij = CPU[i].at(j);
-			Rij_appo = task_ij.RT_lb;
 
-			do {
-				Rij_old = Rij_appo;
-				Rij_instr = task_ij.exec_time + Interf(task_ij, Rij_old);
-				Rij_acc = computeSelfAccessTime(s, task_ij, Rij_old);
-				Rij_block = computeBlockingTime(s, task_ij, Rij_old);
+			Task &task_ij = CPU[i].at(j);
+			std::vector<uint64_t> S_ij;
+
+			S_ij.push_back(task_ij.period);
+			for (Task hpt : CPU[i]) {
+				if (hpt.prio <= task_ij.prio)
+					break;
+				S_ij.push_back(floor(task_ij.period / hpt.period)*hpt.period);
+			}
+			reorder(S_ij); //Reorder from smaller to bigger
+
+			for (uint64_t t_k : S_ij) {
+
+				Rij_instr = task_ij.exec_time + Interf(task_ij, t_k);
+				Rij_acc = computeSelfAccessTime(s, task_ij, t_k);
+				Rij_block = computeBlockingTime(s, task_ij, t_k);
 
 				Rij = Rij_instr + Rij_acc + Rij_block;
 
-				task_ij.response_time1 = Rij;
-				Rij_appo = Rij;
-
-			} while (Rij != Rij_old);
+				if (Rij <= static_cast<double>(t_k)) {
+					task_ij.response_time1 = Rij;
+					break;
+				}
+			}
 
 			rt_normalized = task_ij.response_time1 / task_ij.deadline;
 			if (max_rt_normalized < rt_normalized) {
@@ -225,9 +289,9 @@ double computeResponseTime(const std::vector<Label> &s)
 			}
 		}
 	}
-
 	return max_rt_normalized;
 }
+
 
 void worstResponseTimeTask(const std::vector<Label> &s) {
 	computeResponseTime(s);
@@ -273,6 +337,7 @@ void compute_RT_lb()
 			} while (Rij != Rij_old);
 
 			task_ij.response_time1 = task_ij.RT_lb;
+			task_ij.response_time = task_ij.RT_lb;
 
 			if (Rij > task_ij.deadline) {
 				cout << "deadline missed for task" << task_ij.name << endl;
