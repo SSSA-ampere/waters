@@ -572,11 +572,26 @@ int main_waters()
 
   double RT_init = computeResponseTime(labels);
   std::cout << "Solution with challenge-given solution: " << RT_init << std::endl;
-  //new_optimal_solution_found(RT_init, labels);
+  new_optimal_solution_found(RT_init, labels);
 
   // Assunzione: priority value alto, priorita` alta
   genetic_run();
  // annealing_run();
+
+  /*
+  Solution s = solution_from_csv("result_11641367.csv", 3);
+
+  double fit = computeResponseTime(s);
+  new_optimal_solution_found(fit, s, fit, 1);
+
+  fit = computeMilpResponseTime(s);
+  new_optimal_solution_found(fit, s, fit, 2);
+
+  computeChainRt(s);
+
+  string filename = string("result_genetic.csv");
+  solution_to_csv(filename, s, fit, fit, 1);
+  */
 
   print_tasks_info();
 
