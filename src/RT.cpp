@@ -111,13 +111,24 @@ void computeNumAccesses(const std::vector<Label> &s, const Task &k, uint64_t tot
 	}
 }
 
-double computeSelfAccessTime(const std::vector<Label> &s, const Task &k, double t)
+double SelfAccessTime(const std::vector<Label> &s, const Task &k, double t)
+{
+	uint64_t tot_acc[5] = { 0,0,0,0,0 };
+	double acc_time = 0;
+
+	computeNumAccesses(s, k, tot_acc, t);
+	acc_time += computeAccessTime(k, tot_acc);
+
+	return acc_time;
+}
+
+double InterfAccessTime(const std::vector<Label> &s, const Task &k, double t)
 {
 	uint64_t tot_acc[5] = { 0,0,0,0,0 };
 	double acc_time = 0;
 
 	for (Task const &tj : CPU[k.cpu_id]) {
-		if (tj.prio >= k.prio) {
+		if (tj.prio > k.prio) {
 			
 			computeNumAccesses(s, tj, tot_acc, t);
 			acc_time += computeAccessTime(tj, tot_acc);
@@ -130,25 +141,25 @@ double computeSelfAccessTime(const std::vector<Label> &s, const Task &k, double 
 	return acc_time;
 }
 
-double computeBlockingTime(const std::vector<Label> &s, const Task &k, double t)
+double BlockingTime(const std::vector<Label> &s, const Task &k, double t)
 {
-	uint64_t self_acc[5] = { 0,0,0,0,0 };
+	uint64_t mem_acc_k[5] = { 0,0,0,0,0 };
 	uint64_t job_acc[5] = { 0,0,0,0,0 };
-	uint64_t core_acc[5] = { 0,0,0,0,0 };
+	uint64_t core_acc[5];
 	double block_time = 0;
 	uint64_t job_act;
 	double Rij;
 
-	for (Task const &tj : CPU[k.cpu_id]) {
+	for (Task const &tj : CPU[k.cpu_id]) { // compute memory accesses of k-task and hp(k)
 		if (tj.prio >= k.prio)
-			computeNumAccesses(s, tj, self_acc, t);
+			computeNumAccesses(s, tj, mem_acc_k, t);
 	}
 
 	for (unsigned int i = 0; i < 4; ++i) {
 		if (i != k.cpu_id) {
-			// foreach core different from i-th core
+			// foreach core different from k-task's core
 
-			for (unsigned int m = 0; m < 5; ++m) 
+			for (unsigned int m = 0; m < 5; ++m) // reset core_acc
 				core_acc[m] = 0;
 
 			for (unsigned int j = 0; j < CPU[i].size(); ++j) {
@@ -159,17 +170,17 @@ double computeBlockingTime(const std::vector<Label> &s, const Task &k, double t)
 
 				job_act = static_cast<uint64_t>(ceil(static_cast<double>((Rij + t) / task_ij.period)));
 
-				// compute number of job accesses to memory
+				// compute number of accesses to memory at each job 
 				jobAccessToMem(task_ij, s, job_acc);
 
-				for (unsigned int m = 0; m < 5; m++) {
+				for (unsigned int m = 0; m < 5; m++) { // total number of accesses from core i to each memory m
 					core_acc[m] += job_act * job_acc[m];
 					job_acc[m] = 0;
 				}
 			}
 
 			for (unsigned int m = 0; m < 5; m++) {
-				unsigned int min_acc = self_acc[m] < core_acc[m] ? self_acc[m] : core_acc[m];
+				unsigned int min_acc = mem_acc_k[m] < core_acc[m] ? mem_acc_k[m] : core_acc[m]; // Select minimum number of accesses
 
 				if (m != i)
 					block_time += cycles2us(static_cast<uint64_t>(9 * min_acc));
@@ -206,8 +217,8 @@ double computeResponseTime(const std::vector<Label> &s)
 				do {
 					Rij_old = Rij_appo;
 					Rij_instr = task_ij.exec_time + Interf(task_ij, Rij_old);
-					Rij_acc = computeSelfAccessTime(s, task_ij, Rij_old);
-					Rij_block = computeBlockingTime(s, task_ij, Rij_old);
+					Rij_acc = SelfAccessTime(s, task_ij, Rij_old) + InterfAccessTime(s, task_ij, Rij_old);
+					Rij_block = BlockingTime(s, task_ij, Rij_old);
 
 					Rij = Rij_instr + Rij_acc + Rij_block;
 
@@ -216,20 +227,26 @@ double computeResponseTime(const std::vector<Label> &s)
 
 				} while (Rij != Rij_old);
 
-				rt_normalized = task_ij.response_time1 / task_ij.deadline;
-				if (max_rt_normalized < rt_normalized) {
-					max_rt_normalized = rt_normalized;
-					task_name = task_ij.name;
-					R_worst_ex = Rij_instr;
-					R_worst_ac = Rij_acc;
-					R_worst_bl = Rij_block;
-				}
 				if (task_ij.response_time1 != task_ij.response_time)
 					atLeastOneRijChanged = true;
 				task_ij.response_time = task_ij.response_time1;
 			}
 		}
 	} while (atLeastOneRijChanged);
+
+	for (unsigned int i = 0; i < 4; ++i) {
+		for (Task &task_ij : CPU[i]) {
+
+			rt_normalized = task_ij.response_time1 / task_ij.deadline;
+			if (max_rt_normalized < rt_normalized) {
+				max_rt_normalized = rt_normalized;
+				task_name = task_ij.name;
+				R_worst_ex = task_ij.exec_time + Interf(task_ij, task_ij.response_time1);
+				R_worst_ac = SelfAccessTime(s, task_ij, task_ij.response_time1) + InterfAccessTime(s, task_ij, task_ij.response_time1);
+				R_worst_bl = BlockingTime(s, task_ij, task_ij.response_time1);
+			}
+		}
+	}
 	
 	return max_rt_normalized;
 }
@@ -268,8 +285,8 @@ double computeMilpResponseTime(const std::vector<Label> &s)
 			for (uint64_t t_k : S_ij) {
 
 				Rij_instr = task_ij.exec_time + Interf(task_ij, t_k);
-				Rij_acc = computeSelfAccessTime(s, task_ij, t_k);
-				Rij_block = computeBlockingTime(s, task_ij, t_k);
+				Rij_acc = SelfAccessTime(s, task_ij, t_k);
+				Rij_block = BlockingTime(s, task_ij, t_k);
 
 				Rij = Rij_instr + Rij_acc + Rij_block;
 
