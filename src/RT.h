@@ -13,8 +13,6 @@ double computeResponseTime(const std::vector<Label> &s);
 void worstResponseTimeTask(const std::vector<Label> &s);
 
 double Interf(const Task &k, double t);
-double computeSelfAccessTime(const std::vector<Label> &s, const Task &k, double t);
-double computeBlockingTime(const std::vector<Label> &s, const Task &k, double t);
 void computeNumAccesses(const std::vector<Label> &s, const Task &k, uint64_t tot_acc[], double t, bool best = false);
 void jobAccessToMem(const Task &t, const std::vector<Label> &L, uint64_t acc[]);
 double computeAccessTime(const Task &k, uint64_t n_acc[]);
