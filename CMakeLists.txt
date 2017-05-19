@@ -6,7 +6,7 @@ set(MODEL_PATH
   CACHE STRING "Filepath of the model file")
 
 #set(USE_LET_MODEL off)
-set(USE_LET_MODEL on)
+set(USE_LET_MODEL off)
 
 #set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_BUILD_TYPE Release)
