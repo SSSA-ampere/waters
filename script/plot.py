@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+from tqdm import tqdm
 import sys
 import csv
 
@@ -36,7 +37,7 @@ fit_mean = []
 
 with open(filename, 'rb') as csvfile:
 	spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
-	for row in spamreader:
+	for row in tqdm(spamreader):
 		COST = float(row[0]) * 5000
 		
 		y2.append(float(row[0]))
